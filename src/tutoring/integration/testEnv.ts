@@ -34,4 +34,4 @@ export function loadIntegrationTestEnv(): IntegrationTestEnv | null {
 }
 
 export const integrationSkipReason =
-  'Set VITE_SUPABASE_URL, VITE_SUPABASE_ANON_KEY, and INTEGRATION_TEST_* credentials in .env — see .env.example'
+  'Set VITE_SUPABASE_URL, VITE_SUPABASE_ANON_KEY, and INTEGRATION_TEST_* credentials in .env'
