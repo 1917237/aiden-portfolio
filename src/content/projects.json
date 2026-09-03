@@ -1,0 +1,50 @@
+{
+  "projects": [
+    {
+      "slug": "fog-collector-door-mechanism",
+      "title": "Fog Collector Door Mechanism",
+      "summary": "A motorized door that opens for fog collection and closes to keep dust and debris out of remote fog collectors near farms and open terrain.",
+      "status": "in-progress",
+      "year": "Mar 2025 – Present",
+      "tags": ["CAD", "Drivetrain Design", "3D Printing", "Fabrication", "Prototyping"],
+      "model": "/media/projects/fog-collector-door-mechanism/model.glb",
+      "gallery": [
+        "/media/projects/fog-collector-door-mechanism/gallery-1.png"
+      ],
+      "why": "Fog collectors are often installed in remote sites. For example, in one location, tractors regularly kicked up heavy dust that could contaminate the system. We needed a door that stays closed when collection is not needed, keeping unwanted particulates out, and opens whenever fog is present so the collector can do its job.",
+      "what": "A redesigned door mechanism for outdoor fog collectors. The system moves solid polycarbonate doors with a drivetrain intended for reliable open/close cycles in dusty, remote conditions — open when fog is available, sealed when it is not.",
+      "role": "I designed the door mechanism from scratch and am building it hands-on: cutting material, drilling, assembling the structure, and iterating on the mechanical design. Motor wiring and actuation are next.",
+      "how": "The design moved from a four-motor layout to a single-motor chain-driven drivetrain to cut cost and complexity (about 25% fewer components). I CAD'd the mechanism, 3D printed a 20% scale prototype to validate motion, and developed the full-scale outdoor version. Upcoming work includes integrating motors, wiring, and control so the door can open and close on a schedule or condition trigger.",
+      "challenges": "Sizing torque for solid polycarbonate doors is a core constraint — enough force to move the panels reliably outdoors without overbuilding the drivetrain. Other challenges include keeping the mechanism tolerant of dust and weather, designing a door design that will open all the way not blocking the flow of the fog into the collector, choosing materials and fasteners that hold up outside, and leaving room for motors and wiring so electrical integration does not fight the mechanical layout later.",
+      "outcome": "Still in progress. Mechanical design and hands-on fabrication are underway; motor integration and field-ready actuation are next. More photos, build notes, and results will be added as the project continues."
+    },
+    {
+      "slug": "sentinel-ai",
+      "title": "Sentinel AI",
+      "summary": "A 24-hour NVIDIA hackathon build: a multi-agentic system that simulates, detects, and investigates cloud security breaches.",
+      "status": "completed",
+      "year": "May 2026",
+      "tags": ["Python", "LLM Agents", "Cloud Security", "NVIDIA", "OpenRouter", "Hackathon"],
+      "why": "Cloud breaches on platforms like AWS are expensive — downtime, data exposure, incident response, and compliance fallout can cost companies millions. After hearing about recurring cloud security failures, our team wanted a system that does more than raise an alert: something that can simulate threats, catch suspicious activity, and dig into incidents the way a security analyst would, but faster and with coordinated AI agents.",
+      "what": "Sentinel AI is a multi-agentic security workflow. It can simulate cloud breach scenarios, detect anomalous or malicious patterns, and then autonomously investigate — gathering context, correlating signals, and producing a structured incident narrative so responders see what happened and why, not just a raw alarm.",
+      "role": "Team project. We split ownership across agent design, orchestration, tooling, and the live demo under a hard 24-hour clock.",
+      "how": "We architected six specialized LLM agents, each with a focused job in the pipeline (for example: simulation, detection, investigation, and reporting), so no single model had to do everything. The agents ran on NVIDIA Nemotron models via OpenRouter and were coordinated through the OpenClaw agent framework — handing off findings between stages so detection output fed investigation, and investigation fed a clearer final summary.",
+      "challenges": "Twenty-four hours forced ruthless scope control: which agents were essential, what to stub, and what to demo live. Coordinating six agents without messy loops or contradictory conclusions was hard — prompts, handoffs, and failure cases all had to stay stable under time pressure. Tooling and API limits also bit: keeping OpenRouter/Nemotron calls reliable while we iterated the architecture meant debugging orchestration and agent boundaries as much as the security logic itself.",
+      "outcome": "We shipped a working end-to-end demo within the 24-hour NVIDIA hackathon: simulation → detection → autonomous investigation across the six-agent system. Next improvements would be deeper AWS-specific telemetry, stronger evaluation of false positives, and a cleaner operator UI for real incident response workflows."
+    },
+    {
+      "slug": "pan-tilt-tracking-turret",
+      "title": "Pan-Tilt Tracking Turret",
+      "summary": "A camera-driven pan-tilt turret that detects a target in live video and follows it with dual motors.",
+      "status": "completed",
+      "year": "",
+      "tags": ["Teensy", "OpenCV", "C++", "Computer Vision", "Mechatronics"],
+      "why": "I wanted a hands-on system that closed the loop between computer vision and physical motion — not just detecting an object on screen, but pointing hardware at it in real time.",
+      "what": "A pan-tilt tracking turret built around a Teensy microcontroller, a camera module, and dual motors. OpenCV runs real-time object detection/tracking on the live feed; the system converts target position in the frame into motor commands so the turret follows the target.",
+      "role": "Fill in: solo or team, and what you personally owned (vision code, firmware, mechanical build, wiring, etc.).",
+      "how": "A camera streams live video into an OpenCV pipeline that finds the target and estimates its position in the image. That position is mapped to pan and tilt setpoints, then sent to a Teensy driving dual motors so the turret reorients toward the target. Fill in: detection method (color, face, custom model), motor drivers, and communication between the vision computer and Teensy.",
+      "challenges": "Real-time tracking is sensitive to lighting, frame rate, and control lag — too aggressive and the turret oscillates; too slow and it loses the target. Fill in the hardest bugs you hit (calibration, latency, motor tuning, detection false positives, etc.).",
+      "outcome": "Built a working tracking demo with live video → detection → pan/tilt following. Fill in what you’d improve next (smoother control, better detection, enclosure, demo video)."
+    }
+  ]
+}

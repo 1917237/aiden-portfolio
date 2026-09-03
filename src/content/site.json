@@ -1,0 +1,28 @@
+{
+  "name": "Aiden Luo",
+  "tagline": "Robotics Engineering @ UCSC",
+  "email": "",
+  "phone": "",
+  "links": {
+    "github": "",
+    "linkedin": "",
+    "resume": "/Aiden-Luo-resume.pdf",
+    "other": []
+  },
+  "about": {
+    "headline": "About",
+    "body": "",
+    "photo": "",
+    "skills": {
+      "languages": [],
+      "robotics": [],
+      "hardware": []
+    },
+    "interests": []
+  },
+  "home": {
+    "supporting": "Projects, builds, and fieldwork — fill this line in when you are ready.",
+    "heroImage": "",
+    "currentProjectSlug": "fog-collector-door-mechanism"
+  }
+}

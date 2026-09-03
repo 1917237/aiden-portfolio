@@ -1,0 +1,16 @@
+-- Demo students for calendar testing
+--
+-- 1. In Supabase → Authentication → Users → Add user (create 3):
+--    - Alex Chen     demo-alex@example.com    (password of your choice)
+--    - Jordan Lee    demo-jordan@example.com
+--    - Sam Patel     demo-sam@example.com
+--
+-- 2. Profiles are auto-created. Optionally set full_name in Table Editor → profiles.
+--
+-- 3. On the calendar page, click "Load demo data" to add:
+--    - Weekly availability (Mon–Fri 4–8 PM) if none exists
+--    - Demo credits ($120 each)
+--    - Sample blockouts and student bookings
+--
+-- Or run cancel/reschedule + admin booking support first:
+--   supabase/06-booking-actions.sql  (includes admin_book_slot for demo seed)

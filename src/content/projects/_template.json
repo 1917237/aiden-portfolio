@@ -1,0 +1,32 @@
+{
+  "slug": "your-project-slug",
+  "title": "Project Title",
+  "summary": "One-line summary shown on cards and listings.",
+  "status": "completed",
+  "year": "2026",
+  "tags": ["CAD", "Python"],
+  "coverImage": "/media/projects/your-project-slug/cover.jpg",
+  "model": "/media/projects/your-project-slug/model.glb",
+  "gallery": [
+    "/media/projects/your-project-slug/photo-1.jpg"
+  ],
+  "videos": [
+    {
+      "type": "youtube",
+      "id": "YOUTUBE_VIDEO_ID",
+      "title": "Demo"
+    },
+    {
+      "type": "file",
+      "src": "/media/projects/your-project-slug/demo.mp4",
+      "title": "Close-up"
+    }
+  ],
+  "why": "Why I made this project.",
+  "what": "What it does, in plain language.",
+  "role": "My role (solo, team, what you owned).",
+  "how": "How it works — architecture, sensors, stack.",
+  "challenges": "Challenges, tradeoffs, and decisions.",
+  "outcome": "Results, demos, what you would improve next.",
+  "bodyMarkdown": "Optional longer write-up in **Markdown**."
+}
