@@ -40,7 +40,7 @@ import { CreditBalance } from './CreditBalance'
 import { CancelClassDialog } from './CancelClassDialog'
 import type { WeekCellState } from '../../tutoring/weekCalendarUtils'
 
-type Tab = 'lesson' | 'timeoff' | 'extra'
+type Tab = 'lesson' | 'join' | 'timeoff' | 'extra'
 
 type SlotSelection = {
   dateKey: string
@@ -95,6 +95,9 @@ export function ScheduleModal({
   const [successMessage, setSuccessMessage] = useState<string | null>(null)
   const [localError, setLocalError] = useState<string | null>(null)
   const [cancelDialogOpen, setCancelDialogOpen] = useState(false)
+  const [meetingUrlDraft, setMeetingUrlDraft] = useState(booking?.meeting_url ?? '')
+  const [applySeriesLink, setApplySeriesLink] = useState(Boolean(booking?.series_id))
+  const [joinSaveSuccess, setJoinSaveSuccess] = useState(false)
 
   const [studentId, setStudentId] = useState(booking?.student_id ?? '')
   const [lessonDate, setLessonDate] = useState(selection.dateKey)
@@ -144,6 +147,9 @@ export function ScheduleModal({
     if (booking) {
       setStudentId(booking.student_id)
       setDurationMinutes(resolveBookingDuration(booking.duration_minutes))
+      setMeetingUrlDraft(booking.meeting_url ?? '')
+      setApplySeriesLink(Boolean(booking.series_id))
+      setJoinSaveSuccess(false)
       setTab('lesson')
     }
   }, [booking])
@@ -270,6 +276,44 @@ export function ScheduleModal({
     }
   }
 
+  async function handleSaveJoinLink() {
+    if (!booking) return
+    const url = meetingUrlDraft.trim()
+    if (!url) {
+      setLocalError('Paste a join link first.')
+      return
+    }
+
+    setBusy(true)
+    setLocalError(null)
+    onError('')
+    setJoinSaveSuccess(false)
+
+    try {
+      if (booking.series_id && applySeriesLink) {
+        const { error: seriesError } = await supabase.rpc('admin_set_series_meeting_url', {
+          p_series_id: booking.series_id,
+          p_url: url,
+        })
+        if (seriesError) throw seriesError
+      } else {
+        const { error: rpcError } = await supabase.rpc('admin_set_booking_meeting_url', {
+          p_booking_id: booking.id,
+          p_url: url,
+        })
+        if (rpcError) throw rpcError
+      }
+      setBusy(false)
+      setJoinSaveSuccess(true)
+      onSaved()
+      window.setTimeout(() => {
+        setJoinSaveSuccess(false)
+      }, 900)
+    } catch (err) {
+      reportError(err instanceof Error ? err.message : 'Failed to save join link')
+    }
+  }
+
   async function handleCancelTimeOff() {
     if (!activeBlock) return
     if (!window.confirm('Cancel this time off?')) return
@@ -379,11 +423,18 @@ export function ScheduleModal({
     }
   }
 
-  const tabs: { id: Tab; label: string }[] = [
-    { id: 'lesson', label: 'Lesson' },
-    { id: 'timeoff', label: 'Time off' },
-    { id: 'extra', label: 'Extra slots' },
-  ]
+  const tabs: { id: Tab; label: string }[] = booking
+    ? [
+        { id: 'lesson', label: 'Lesson' },
+        { id: 'join', label: 'Join link' },
+        { id: 'timeoff', label: 'Time off' },
+        { id: 'extra', label: 'Extra slots' },
+      ]
+    : [
+        { id: 'lesson', label: 'Lesson' },
+        { id: 'timeoff', label: 'Time off' },
+        { id: 'extra', label: 'Extra slots' },
+      ]
 
   return (
     <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/40 p-4 sm:items-center">
@@ -575,6 +626,72 @@ export function ScheduleModal({
                   </button>
                 ) : null}
               </div>
+            </>
+          ) : null}
+
+          {tab === 'join' && booking ? (
+            <>
+              <p className="text-sm text-ink-muted">
+                Join link for <strong>{booking.student_name}</strong>. Students see this on their
+                upcoming class and lesson details.
+              </p>
+              <label className="block">
+                <span className="text-sm font-semibold">Meeting URL</span>
+                <input
+                  type="url"
+                  value={meetingUrlDraft}
+                  onChange={(event) => setMeetingUrlDraft(event.target.value)}
+                  onKeyDown={(event) => {
+                    if (event.key === 'Enter') {
+                      event.preventDefault()
+                      void handleSaveJoinLink()
+                    }
+                  }}
+                  disabled={busy || joinSaveSuccess}
+                  placeholder="https://…"
+                  className="mt-1 w-full border border-line bg-white px-3 py-2 text-sm disabled:opacity-60"
+                />
+              </label>
+              {booking.series_id ? (
+                <label className="flex items-center gap-2 text-sm">
+                  <input
+                    type="checkbox"
+                    checked={applySeriesLink}
+                    onChange={(event) => setApplySeriesLink(event.target.checked)}
+                    disabled={busy || joinSaveSuccess}
+                  />
+                  Apply to the whole weekly series
+                </label>
+              ) : null}
+              <button
+                type="button"
+                disabled={busy || joinSaveSuccess}
+                onClick={() => void handleSaveJoinLink()}
+                className={`inline-flex min-w-[8.5rem] items-center justify-center gap-1.5 px-4 py-2.5 text-sm font-semibold transition-colors disabled:opacity-100 ${
+                  joinSaveSuccess
+                    ? 'confirm-btn-success bg-sage text-white'
+                    : 'bg-sage-deep text-white'
+                }`}
+              >
+                {busy ? (
+                  <span className="text-xs tracking-wide">Saving…</span>
+                ) : joinSaveSuccess ? (
+                  <>
+                    <svg viewBox="0 0 20 20" fill="none" className="h-4 w-4" aria-hidden>
+                      <path
+                        d="M4 10.5 8 14.5 16 6.5"
+                        stroke="currentColor"
+                        strokeWidth="2.25"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                    </svg>
+                    <span>Saved</span>
+                  </>
+                ) : (
+                  <span>Save join link</span>
+                )}
+              </button>
             </>
           ) : null}
 

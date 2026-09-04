@@ -30,6 +30,7 @@ import {
   startOfWeekFromDateKey,
 } from '../../tutoring/timezoneUtils'
 import { formatBookingError } from '../../tutoring/bookingErrors'
+import { isLateCancel } from '../../tutoring/lateCancelPolicy'
 import {
   buildSlotsByCell,
   buildTakenCellsByKey,
@@ -297,7 +298,11 @@ export function StudentLessonModal({
         throw rpcError
       }
 
-      finishSuccess('Class cancelled.')
+      finishSuccess(
+        isLateCancel(lesson.start_time)
+          ? 'Class cancelled. Credits were not returned (inside 12 hours of class).'
+          : 'Class cancelled. Credits returned to your balance.',
+      )
     } catch (err) {
       setError(formatBookingError(err))
       setBusy(false)
@@ -358,9 +363,24 @@ export function StudentLessonModal({
                 </p>
                 <p className="mt-1 text-sm text-ink-muted">
                   {formatDurationLabel(initialDuration)}
-                  {lesson.pay_later ? ' · pay later' : ''}
                   {lesson.status === 'completed' ? ' · completed' : null}
                 </p>
+                {lesson.status === 'booked' ? (
+                  lesson.meeting_url ? (
+                    <a
+                      href={lesson.meeting_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="mt-3 inline-flex bg-sage-deep px-4 py-2.5 text-sm font-semibold text-white hover:bg-sage"
+                    >
+                      Join class
+                    </a>
+                  ) : (
+                    <p className="mt-3 text-sm text-ink-muted">
+                      Your tutor will add the join link soon.
+                    </p>
+                  )
+                ) : null}
               </div>
 
               {error ? <p className="text-sm text-red-700">{error}</p> : null}
@@ -530,6 +550,7 @@ export function StudentLessonModal({
         open={cancelDialogOpen}
         variant="student"
         busy={busy}
+        lessonStartIso={lesson.start_time}
         onClose={() => setCancelDialogOpen(false)}
         onConfirm={(comment) => {
           setCancelDialogOpen(false)

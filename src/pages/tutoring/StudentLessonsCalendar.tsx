@@ -14,10 +14,10 @@ import {
 export type StudentLesson = {
   id: string
   status: 'booked' | 'completed' | 'cancelled'
-  pay_later: boolean
   duration_minutes: number
   start_time: string
   end_time: string
+  meeting_url?: string | null
 }
 
 type ViewMode = 'week' | 'month'
@@ -300,7 +300,6 @@ export function StudentLessonsCalendar({ lessons, timeZone, onSelectLesson }: Pr
                             </p>
                             <p className="truncate opacity-90">
                               {lesson.status === 'booked' ? 'Scheduled' : 'Completed'}
-                              {lesson.pay_later ? ' · pay later' : ''}
                             </p>
                           </button>
                         )

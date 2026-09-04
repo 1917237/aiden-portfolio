@@ -1,4 +1,9 @@
 import { useEffect, useState } from 'react'
+import {
+  LATE_CANCEL_AGREEMENT,
+  LATE_CANCEL_HOURS,
+  isLateCancel,
+} from '../../tutoring/lateCancelPolicy'
 
 type Variant = 'admin' | 'student'
 
@@ -6,6 +11,7 @@ type Props = {
   open: boolean
   variant: Variant
   busy?: boolean
+  lessonStartIso?: string | null
   onClose: () => void
   onConfirm: (comment: string | null) => void
 }
@@ -23,7 +29,7 @@ const COPY: Record<
   },
   student: {
     title: 'Cancel this class?',
-    description: 'Your tutor will be notified. Credits held for this lesson will be refunded.',
+    description: `This class is at least ${LATE_CANCEL_HOURS} hours away, so you'll get your credits back.`,
     noteLabel: 'Note for your tutor (optional)',
     confirm: 'Cancel class',
     dismiss: 'Keep class',
@@ -34,19 +40,31 @@ export function CancelClassDialog({
   open,
   variant,
   busy = false,
+  lessonStartIso = null,
   onClose,
   onConfirm,
 }: Props) {
   const [note, setNote] = useState('')
+  const [policyAgreed, setPolicyAgreed] = useState(false)
+  const [shakePolicy, setShakePolicy] = useState(false)
   const copy = COPY[variant]
+  const late = variant === 'student' && lessonStartIso ? isLateCancel(lessonStartIso) : false
 
   useEffect(() => {
-    if (open) setNote('')
+    if (!open) return
+    setNote('')
+    setPolicyAgreed(false)
+    setShakePolicy(false)
   }, [open])
 
   if (!open) return null
 
   function handleSubmit() {
+    if (late && !policyAgreed) {
+      setShakePolicy(true)
+      window.setTimeout(() => setShakePolicy(false), 450)
+      return
+    }
     const trimmed = note.trim()
     onConfirm(trimmed.length > 0 ? trimmed : null)
   }
@@ -69,10 +87,36 @@ export function CancelClassDialog({
           <h2 id="cancel-class-title" className="font-display text-2xl font-semibold">
             {copy.title}
           </h2>
-          <p className="mt-2 text-sm text-ink-muted">{copy.description}</p>
+          {late ? (
+            <p className="mt-2 text-sm text-ink-muted">
+              This class starts in under {LATE_CANCEL_HOURS} hours. If you cancel now, you will not
+              get those credits back.
+            </p>
+          ) : (
+            <p className="mt-2 text-sm text-ink-muted">{copy.description}</p>
+          )}
         </div>
 
         <div className="space-y-4 p-5">
+          {late ? (
+            <div
+              className={`border px-4 py-3 ${
+                shakePolicy ? 'confirm-btn-shake border-red-400 bg-red-50' : 'border-red-200 bg-red-50'
+              }`}
+            >
+              <label className="flex items-start gap-3 text-sm text-red-950">
+                <input
+                  type="checkbox"
+                  checked={policyAgreed}
+                  onChange={(event) => setPolicyAgreed(event.target.checked)}
+                  disabled={busy}
+                  className="mt-1"
+                />
+                <span>{LATE_CANCEL_AGREEMENT}</span>
+              </label>
+            </div>
+          ) : null}
+
           <label className="block">
             <span className="text-sm font-semibold">{copy.noteLabel}</span>
             <textarea

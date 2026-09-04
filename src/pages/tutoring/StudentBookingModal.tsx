@@ -29,6 +29,7 @@ import type { AvailabilitySlot } from '../../tutoring/types'
 import { supabase } from '../../lib/supabase'
 import { formatBookingError } from '../../tutoring/bookingErrors'
 import { STUDENT_PAY_LATER_HINT } from '../../tutoring/studentCreditCopy'
+import { LATE_CANCEL_AGREEMENT } from '../../tutoring/lateCancelPolicy'
 
 type Props = {
   slot: AvailabilitySlot
@@ -87,6 +88,8 @@ export function StudentBookingModal({
   const [availableLessonCount, setAvailableLessonCount] = useState(WEEKLY_LESSON_COUNT)
   const [bookedLessonCount, setBookedLessonCount] = useState(1)
   const [shake, setShake] = useState(false)
+  const [shakePolicy, setShakePolicy] = useState(false)
+  const [policyAgreed, setPolicyAgreed] = useState(false)
   const [confirmState, setConfirmState] = useState<ConfirmState>('idle')
   const [submitError, setSubmitError] = useState<string | null>(null)
 
@@ -258,9 +261,19 @@ export function StudentBookingModal({
     }
   }
 
+  function triggerPolicyShake() {
+    setShakePolicy(true)
+    window.setTimeout(() => setShakePolicy(false), 450)
+  }
+
   async function submitBooking(payLater: boolean) {
     if (!schedule || !canConfirm || confirmState === 'loading' || confirmState === 'success') {
       if (durationError || (hasPartialWeeks && !scheduleAnyway)) triggerShake()
+      return
+    }
+
+    if (!policyAgreed) {
+      triggerPolicyShake()
       return
     }
 
@@ -538,6 +551,24 @@ export function StudentBookingModal({
                   {submitError}
                 </p>
               ) : null}
+
+              <div
+                className={`border px-4 py-3 ${
+                  shakePolicy ? 'confirm-btn-shake border-red-400 bg-red-50' : 'border-line bg-bg-elevated/40'
+                }`}
+              >
+                <label className="flex items-start gap-3 text-sm">
+                  <input
+                    type="checkbox"
+                    checked={policyAgreed}
+                    onChange={(event) => setPolicyAgreed(event.target.checked)}
+                    className="mt-1"
+                  />
+                  <span>
+                    {LATE_CANCEL_AGREEMENT}
+                  </span>
+                </label>
+              </div>
             </div>
           )}
         </div>

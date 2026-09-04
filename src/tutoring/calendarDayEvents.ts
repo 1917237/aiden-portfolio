@@ -13,6 +13,8 @@ export type CalendarBooking = {
   date_key: string
   slot_id: string
   duration_minutes?: number
+  series_id?: string | null
+  meeting_url?: string | null
 }
 
 export type DayEvent =

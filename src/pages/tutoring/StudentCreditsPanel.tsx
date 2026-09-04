@@ -83,7 +83,12 @@ export function StudentCreditsPanel({
     <div className="mt-3 grid gap-4 border border-line bg-bg-elevated/60 p-6">
       <StudentCreditsSummary balanceCents={creditBalance} classRateCents={classRateCents} />
 
-      <p className="text-sm text-ink-muted">{STUDENT_CREDITS_POLICY}</p>
+      <details className="text-sm">
+        <summary className="cursor-pointer font-medium text-ink-muted hover:text-ink">
+          How credits work
+        </summary>
+        <p className="mt-2 text-ink-muted">{STUDENT_CREDITS_POLICY}</p>
+      </details>
 
       <div className="border-t border-line pt-4">
         {!showForm ? (

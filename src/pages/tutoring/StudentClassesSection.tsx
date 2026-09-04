@@ -62,10 +62,10 @@ export function StudentClassesSection({
           return {
             id: booking.id,
             status: booking.status,
-            pay_later: booking.pay_later,
             duration_minutes: duration,
             start_time: start,
             end_time: new Date(new Date(start).getTime() + duration * 60_000).toISOString(),
+            meeting_url: booking.meeting_url?.trim() || null,
           }
         }),
     [lessons],

@@ -1,5 +1,6 @@
 import { formatCredits } from '../../tutoring/format'
 import { centsToLessonCredits, formatLessonCredits } from '../../tutoring/lessonCredits'
+import { STUDENT_NEGATIVE_BALANCE_HINT } from '../../tutoring/studentCreditCopy'
 
 type Props = {
   balanceCents: number
@@ -10,16 +11,23 @@ export function StudentCreditsSummary({ balanceCents, classRateCents }: Props) {
   const credits = centsToLessonCredits(balanceCents, classRateCents)
   const tone =
     balanceCents > 0 ? 'text-green-700' : balanceCents < 0 ? 'text-red-700' : 'text-ink'
+  const owes = balanceCents < 0
 
   return (
     <div>
-      <p className="text-sm font-semibold text-ink-muted">Your credits</p>
+      <p className="text-sm font-semibold text-ink-muted">
+        {owes ? 'Balance (you owe)' : 'Your credits'}
+      </p>
       <p className={`mt-1 font-display text-3xl font-semibold ${tone}`}>
         {formatLessonCredits(credits)}
       </p>
-      <p className="mt-1 text-sm text-ink-muted">
-        1 credit = one 50-minute class at your rate.
-      </p>
+      {owes ? (
+        <p className="mt-2 text-sm text-red-800">{STUDENT_NEGATIVE_BALANCE_HINT}</p>
+      ) : (
+        <p className="mt-1 text-sm text-ink-muted">
+          1 credit = one 50-minute class at your rate.
+        </p>
+      )}
 
       <details className="mt-3 text-sm">
         <summary className="cursor-pointer font-medium text-ink-muted hover:text-ink">

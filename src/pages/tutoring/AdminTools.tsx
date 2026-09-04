@@ -18,6 +18,7 @@ import {
 } from './AdminBookingRow'
 import { AdminInviteStudent } from './AdminInviteStudent'
 import { AdminWeeklySeriesPanel } from './AdminWeeklySeriesPanel'
+import { AdminMeetingLinksPanel } from './AdminMeetingLinksPanel'
 import { CollapsibleSection } from './CollapsibleSection'
 import { TimesInTimezoneLabel } from './TimesInTimezoneLabel'
 import { WeeklyScheduler } from './WeeklyScheduler'
@@ -393,6 +394,14 @@ export function AdminTools({ onUpdated }: Props) {
             ) : (
               renderBookingList(weekBookings)
             )}
+          </CollapsibleSection>
+
+          <CollapsibleSection
+            title="Join links"
+            description="One-off class links, one link per weekly series, and late-cancel waives."
+            defaultOpen={false}
+          >
+            <AdminMeetingLinksPanel refreshKey={dataRefreshKey} />
           </CollapsibleSection>
 
           <CollapsibleSection

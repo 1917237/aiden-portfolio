@@ -15,6 +15,7 @@ export type Booking = {
   duration_minutes: number
   pay_later: boolean
   series_id: string | null
+  meeting_url?: string | null
   created_at: string
 }
 

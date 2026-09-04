@@ -1,18 +1,19 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { formatDurationLabel } from '../../tutoring/bookingDurationConfig'
 import { formatSlotRange } from '../../tutoring/format'
-import { formatTimezoneLabel } from '../../tutoring/timezoneUtils'
+import { formatTimezoneLabel, getDateKeyInTimezone } from '../../tutoring/timezoneUtils'
 import { supabase } from '../../lib/supabase'
 import { CollapsibleSection } from './CollapsibleSection'
 import type { StudentLesson } from './StudentLessonsCalendar'
+import { LATE_CANCEL_AGREEMENT, LATE_CANCEL_HOURS, isLateCancel } from '../../tutoring/lateCancelPolicy'
 
 type UpcomingLesson = {
   id: string
   series_id: string | null
-  pay_later: boolean
   duration_minutes: number
   start_time: string
   end_time: string
+  meeting_url: string | null
 }
 
 type WeeklySeriesRow = {
@@ -54,6 +55,19 @@ function todayDateInputValue(timeZone: string) {
   return `${y}-${m}-${d}`
 }
 
+/** Matches stop_my_weekly_series: keep classes on/before stop date; cancel later ones. */
+function lessonsCancelledByStop(
+  seriesLessons: UpcomingLesson[],
+  mode: 'now' | 'on_date',
+  stopDate: string,
+  timeZone: string,
+) {
+  if (mode === 'now') return seriesLessons
+  return seriesLessons.filter(
+    (lesson) => getDateKeyInTimezone(lesson.start_time, timeZone) > stopDate,
+  )
+}
+
 export function StudentUpcomingPanel({
   studentId,
   timeZone,
@@ -68,6 +82,10 @@ export function StudentUpcomingPanel({
   const [error, setError] = useState<string | null>(null)
   const [busySeriesId, setBusySeriesId] = useState<string | null>(null)
   const [stopDateBySeries, setStopDateBySeries] = useState<Record<string, string>>({})
+  const [stopPolicyAgreedBySeries, setStopPolicyAgreedBySeries] = useState<Record<string, boolean>>(
+    {},
+  )
+  const [stopPolicyShakeBySeries, setStopPolicyShakeBySeries] = useState<Record<string, boolean>>({})
   const [successBySeries, setSuccessBySeries] = useState<Record<string, string>>({})
 
   const load = useCallback(async () => {
@@ -77,7 +95,7 @@ export function StudentUpcomingPanel({
     const [bookingsResult, seriesResult] = await Promise.all([
       supabase
         .from('bookings')
-        .select('id, series_id, pay_later, duration_minutes, status, availability_slots(start_time, end_time)')
+        .select('id, series_id, duration_minutes, status, meeting_url, availability_slots(start_time, end_time)')
         .eq('student_id', studentId)
         .eq('status', 'booked'),
       supabase
@@ -87,8 +105,21 @@ export function StudentUpcomingPanel({
         .eq('active', true),
     ])
 
-    if (bookingsResult.error) {
-      setError(bookingsResult.error.message)
+    let bookingRows = bookingsResult.data
+    let bookingsError = bookingsResult.error
+
+    if (bookingsError?.message.includes('meeting_url')) {
+      const fallback = await supabase
+        .from('bookings')
+        .select('id, series_id, duration_minutes, status, availability_slots(start_time, end_time)')
+        .eq('student_id', studentId)
+        .eq('status', 'booked')
+      bookingRows = fallback.data
+      bookingsError = fallback.error
+    }
+
+    if (bookingsError) {
+      setError(bookingsError.message)
       setLoading(false)
       return
     }
@@ -108,7 +139,7 @@ export function StudentUpcomingPanel({
 
     const now = Date.now()
     const upcoming: UpcomingLesson[] = []
-    for (const row of bookingsResult.data ?? []) {
+    for (const row of bookingRows ?? []) {
       const slot = row.availability_slots as
         | { start_time: string; end_time: string }
         | { start_time: string; end_time: string }[]
@@ -120,10 +151,10 @@ export function StudentUpcomingPanel({
       upcoming.push({
         id: row.id as string,
         series_id: (row.series_id as string | null) ?? null,
-        pay_later: Boolean(row.pay_later),
         duration_minutes: duration,
         start_time: start,
         end_time: lessonEndIso(start, duration),
+        meeting_url: ((row as { meeting_url?: string | null }).meeting_url ?? null)?.trim() || null,
       })
     }
     upcoming.sort((a, b) => a.start_time.localeCompare(b.start_time))
@@ -145,10 +176,10 @@ export function StudentUpcomingPanel({
     onSelectLesson({
       id: lesson.id,
       status: 'booked',
-      pay_later: lesson.pay_later,
       duration_minutes: lesson.duration_minutes,
       start_time: lesson.start_time,
       end_time: lesson.end_time,
+      meeting_url: lesson.meeting_url,
     })
   }
 
@@ -168,11 +199,27 @@ export function StudentUpcomingPanel({
     setError(null)
     const stopDate = stopDateBySeries[seriesId] ?? todayDateInputValue(timeZone)
     const timeZoneLabel = formatTimezoneLabel(timeZone)
+    const seriesLessons = lessons.filter((lesson) => lesson.series_id === seriesId)
+    const toCancel = lessonsCancelledByStop(seriesLessons, mode, stopDate, timeZone)
+    const lateAmongCancelled = toCancel.filter((lesson) => isLateCancel(lesson.start_time))
+    const hasLateCancel = lateAmongCancelled.length > 0
+    const lateCancelNote = hasLateCancel
+      ? ` Any cancelled class within ${LATE_CANCEL_HOURS} hours of start will not get credits back (same as cancelling that class).`
+      : ` Cancelled classes at least ${LATE_CANCEL_HOURS} hours before start get credits back; inside ${LATE_CANCEL_HOURS} hours they do not.`
+
+    if (hasLateCancel && !stopPolicyAgreedBySeries[seriesId]) {
+      setStopPolicyShakeBySeries((prev) => ({ ...prev, [seriesId]: true }))
+      window.setTimeout(() => {
+        setStopPolicyShakeBySeries((prev) => ({ ...prev, [seriesId]: false }))
+      }, 450)
+      setError('Check the late-cancel box before stopping this weekly series.')
+      return
+    }
 
     if (mode === 'now') {
       if (
         !window.confirm(
-          'Stop this weekly series now? All upcoming classes in this series will be cancelled, and no new ones will be booked.',
+          `Stop this weekly series now? All upcoming classes in this series will be cancelled, and no new ones will be booked.${lateCancelNote}`,
         )
       ) {
         return
@@ -184,7 +231,7 @@ export function StudentUpcomingPanel({
       }
       if (
         !window.confirm(
-          `Stop this weekly series after ${stopDate} (${timeZoneLabel})? Classes on or before that day in your timezone stay; later ones are cancelled, and rolling stops.`,
+          `Stop this weekly series after ${stopDate} (${timeZoneLabel})? Classes on or before that day in your timezone stay; later ones are cancelled, and rolling stops.${lateCancelNote}`,
         )
       ) {
         return
@@ -212,14 +259,23 @@ export function StudentUpcomingPanel({
     }
 
     const result = data as StopResult
+    const creditNote =
+      result.cancelled_count === 0
+        ? ''
+        : lateAmongCancelled.length === 0
+          ? ' Credits returned for cancelled classes.'
+          : lateAmongCancelled.length === toCancel.length
+            ? ` Credits were not returned (inside ${LATE_CANCEL_HOURS} hours of class).`
+            : ` Credits returned for early cancels; classes inside ${LATE_CANCEL_HOURS} hours did not get credits back.`
+
     const message =
       mode === 'now'
         ? `Weekly series stopped. Cancelled ${result.cancelled_count} upcoming class${
             result.cancelled_count === 1 ? '' : 'es'
-          }.`
+          }.${creditNote}`
         : `Weekly series will end after ${stopDate} (${timeZoneLabel}). Cancelled ${result.cancelled_count} later class${
             result.cancelled_count === 1 ? '' : 'es'
-          }.`
+          }.${creditNote}`
 
     setSuccessBySeries((prev) => ({ ...prev, [seriesId]: message }))
     window.setTimeout(() => {
@@ -250,32 +306,40 @@ export function StudentUpcomingPanel({
       {error ? <p className="text-sm text-red-700">{error}</p> : null}
 
       {nextLesson ? (
-        <button
-          type="button"
-          onClick={() => openLesson(nextLesson)}
-          disabled={!onSelectLesson}
-          className={`border border-line bg-bg-elevated/60 p-6 ${onSelectLesson ? `${lessonButtonClass} cursor-pointer` : ''}`}
-        >
-          <div className="flex flex-wrap items-center gap-2">
-            <p className="text-sm font-semibold text-ink-muted">Upcoming class</p>
-            {nextLesson.pay_later ? (
-              <span className="border border-amber-200 bg-amber-50 px-2 py-0.5 text-xs font-semibold uppercase tracking-wide text-amber-950">
-                Pay later
-              </span>
+        <div className="border border-line bg-bg-elevated/60 p-6">
+          <button
+            type="button"
+            onClick={() => openLesson(nextLesson)}
+            disabled={!onSelectLesson}
+            className={`w-full text-left ${onSelectLesson ? `${lessonButtonClass} cursor-pointer` : ''}`}
+          >
+            <div className="flex flex-wrap items-center gap-2">
+              <p className="text-sm font-semibold text-ink-muted">Upcoming class</p>
+            </div>
+            <p className="mt-2 font-display text-2xl font-semibold tracking-tight">
+              {formatSlotRange(nextLesson.start_time, nextLesson.end_time, timeZone)}
+            </p>
+            <p className="mt-1 text-sm text-ink-muted">
+              {formatDurationLabel(nextLesson.duration_minutes)}
+              {nextLesson.series_id ? ' · Weekly series' : null}
+            </p>
+            {onSelectLesson ? (
+              <p className="mt-2 text-xs font-medium text-sage-deep">Tap to cancel or reschedule</p>
             ) : null}
-          </div>
-          <p className="mt-2 font-display text-2xl font-semibold tracking-tight">
-            {formatSlotRange(nextLesson.start_time, nextLesson.end_time, timeZone)}
-          </p>
-          <p className="mt-1 text-sm text-ink-muted">
-            {formatDurationLabel(nextLesson.duration_minutes)}
-            {nextLesson.pay_later ? ' · pay later' : null}
-            {nextLesson.series_id ? ' · Weekly series' : null}
-          </p>
-          {onSelectLesson ? (
-            <p className="mt-2 text-xs font-medium text-sage-deep">Tap to cancel or reschedule</p>
-          ) : null}
-        </button>
+          </button>
+          {nextLesson.meeting_url ? (
+            <a
+              href={nextLesson.meeting_url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="mt-4 inline-flex bg-sage-deep px-4 py-2.5 text-sm font-semibold text-white hover:bg-sage"
+            >
+              Join class
+            </a>
+          ) : (
+            <p className="mt-4 text-sm text-ink-muted">Your tutor will add the join link soon.</p>
+          )}
+        </div>
       ) : (
         <div className="border border-line bg-bg-elevated/60 p-6">
           <p className="text-sm font-semibold text-ink-muted">Upcoming class</p>
@@ -289,6 +353,18 @@ export function StudentUpcomingPanel({
         const stopDate =
           stopDateBySeries[item.id] ?? todayDateInputValue(timeZone)
         const timeZoneLabel = formatTimezoneLabel(timeZone)
+        const lateIfStopNow = lessonsCancelledByStop(upcoming, 'now', stopDate, timeZone).some(
+          (lesson) => isLateCancel(lesson.start_time),
+        )
+        const lateIfStopOnDate = lessonsCancelledByStop(
+          upcoming,
+          'on_date',
+          stopDate,
+          timeZone,
+        ).some((lesson) => isLateCancel(lesson.start_time))
+        const hasLateCancel = lateIfStopNow || lateIfStopOnDate
+        const stopPolicyAgreed = Boolean(stopPolicyAgreedBySeries[item.id])
+        const stopPolicyShake = Boolean(stopPolicyShakeBySeries[item.id])
 
         return (
           <CollapsibleSection
@@ -339,9 +415,22 @@ export function StudentUpcomingPanel({
                           </p>
                           <p className="mt-0.5 text-ink-muted">
                             {formatDurationLabel(lesson.duration_minutes)}
-                            {lesson.pay_later ? ' · pay later' : null}
                           </p>
                         </button>
+                        {lesson.meeting_url ? (
+                          <a
+                            href={lesson.meeting_url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="mx-3 mb-3 inline-flex border border-line px-3 py-1.5 text-xs font-semibold hover:bg-bg-elevated"
+                          >
+                            Join
+                          </a>
+                        ) : (
+                          <p className="mx-3 mb-3 text-xs text-ink-muted">
+                            Your tutor will add the join link soon.
+                          </p>
+                        )}
                       </li>
                     ))}
                   </ul>
@@ -352,8 +441,45 @@ export function StudentUpcomingPanel({
                   <p className="text-xs text-ink-muted">
                     Stopping notifies your tutor. Stop now cancels every upcoming class in this
                     series. Stop on a date keeps classes through that calendar day in your
-                    timezone ({timeZoneLabel}), matching the times shown on this page.
+                    timezone ({timeZoneLabel}), matching the times shown on this page. Cancelled
+                    classes follow the same {LATE_CANCEL_HOURS}-hour rule: early cancels return
+                    credits; inside {LATE_CANCEL_HOURS} hours they do not.
                   </p>
+
+                  {hasLateCancel ? (
+                    <div
+                      className={`border px-4 py-3 ${
+                        stopPolicyShake
+                          ? 'confirm-btn-shake border-red-400 bg-red-50'
+                          : 'border-red-200 bg-red-50'
+                      }`}
+                    >
+                      <label className="flex items-start gap-3 text-sm text-red-950">
+                        <input
+                          type="checkbox"
+                          checked={stopPolicyAgreed}
+                          onChange={(event) =>
+                            setStopPolicyAgreedBySeries((prev) => ({
+                              ...prev,
+                              [item.id]: event.target.checked,
+                            }))
+                          }
+                          disabled={busy}
+                          className="mt-1"
+                        />
+                        <span>
+                          {LATE_CANCEL_AGREEMENT}
+                          {lateIfStopNow && !lateIfStopOnDate ? (
+                            <>
+                              {' '}
+                              Required for <strong>Stop now</strong>. Stop on date keeps your class
+                              within {LATE_CANCEL_HOURS} hours, so that path does not need this.
+                            </>
+                          ) : null}
+                        </span>
+                      </label>
+                    </div>
+                  ) : null}
 
                   <div className="flex flex-wrap items-end gap-2">
                     <label className="block min-w-[10rem] flex-1">

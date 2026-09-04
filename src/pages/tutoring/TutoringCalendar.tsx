@@ -4,7 +4,6 @@ import { supabase } from '../../lib/supabase'
 import type { CalendarBooking } from '../../tutoring/calendarDayEvents'
 import { DEFAULT_CLASS_RATE_CENTS } from '../../tutoring/config'
 import { DEFAULT_BOOKING_DURATION_MINUTES } from '../../tutoring/bookingDurationConfig'
-import { seedDemoCalendarData } from '../../tutoring/seedDemoData'
 import { lessonToIcsEvent } from '../../tutoring/calendarIcs'
 import { regenerateBookableSlots } from '../../tutoring/regenerateSlots'
 import type { Blockout, DateAvailability, WeeklyCell } from '../../tutoring/scheduleTypes'
@@ -71,7 +70,6 @@ function TutoringCalendarPage() {
   const [message, setMessage] = useState<string | null>(null)
   const [slotSelection, setSlotSelection] = useState<SlotClickPayload | null>(null)
   const [selectedBooking, setSelectedBooking] = useState<CalendarBooking | null>(null)
-  const [seeding, setSeeding] = useState(false)
   const [hasLoaded, setHasLoaded] = useState(false)
   const slotsSyncedRef = useRef(false)
 
@@ -97,7 +95,7 @@ function TutoringCalendarPage() {
         supabase
           .from('bookings')
           .select(
-            'id, status, slot_id, student_id, duration_minutes, availability_slots(start_time, end_time), profiles!bookings_student_id_fkey(full_name)',
+            'id, status, slot_id, student_id, series_id, duration_minutes, meeting_url, availability_slots(start_time, end_time), profiles!bookings_student_id_fkey(full_name)',
           )
           .in('status', ['booked', 'completed'])
           .order('created_at', { ascending: true }),
@@ -111,10 +109,24 @@ function TutoringCalendarPage() {
     const extrasMissingTable =
       extrasResult.error && isMissingTableError(extrasResult.error.message, 'date_availability')
 
+    let bookingsData = bookingsResult.data
+    let bookingsError = bookingsResult.error
+    if (bookingsError?.message.includes('meeting_url')) {
+      const fallback = await supabase
+        .from('bookings')
+        .select(
+          'id, status, slot_id, student_id, series_id, duration_minutes, availability_slots(start_time, end_time), profiles!bookings_student_id_fkey(full_name)',
+        )
+        .in('status', ['booked', 'completed'])
+        .order('created_at', { ascending: true })
+      bookingsData = fallback.data
+      bookingsError = fallback.error
+    }
+
     if (
       weeklyResult.error ||
       blockoutsResult.error ||
-      bookingsResult.error ||
+      bookingsError ||
       studentsResult.error ||
       (extrasResult.error && !extrasMissingTable)
     ) {
@@ -122,7 +134,7 @@ function TutoringCalendarPage() {
         weeklyResult.error?.message ??
           extrasResult.error?.message ??
           blockoutsResult.error?.message ??
-          bookingsResult.error?.message ??
+          bookingsError?.message ??
           studentsResult.error?.message ??
           'Failed to load',
       )
@@ -141,7 +153,7 @@ function TutoringCalendarPage() {
     setBlockouts((blockoutsResult.data ?? []) as Blockout[])
 
     const weekBookings: CalendarBooking[] = []
-    for (const row of bookingsResult.data ?? []) {
+    for (const row of bookingsData ?? []) {
       const slotRaw = row.availability_slots
       const studentRaw = row.profiles
       const slot = (Array.isArray(slotRaw) ? slotRaw[0] : slotRaw) as
@@ -167,6 +179,9 @@ function TutoringCalendarPage() {
         end_time: slot.end_time,
         date_key: dateKey,
         duration_minutes: (row.duration_minutes as number | null) ?? DEFAULT_BOOKING_DURATION_MINUTES,
+        series_id: (row.series_id as string | null | undefined) ?? null,
+        meeting_url:
+          ((row as { meeting_url?: string | null }).meeting_url ?? null)?.trim() || null,
       })
     }
 
@@ -227,20 +242,6 @@ function TutoringCalendarPage() {
     setSelectedBooking(null)
   }
 
-  async function handleSeedDemo() {
-    setSeeding(true)
-    setError(null)
-    setMessage(null)
-    try {
-      const result = await seedDemoCalendarData()
-      setMessage(result.message)
-      await loadWeek()
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to seed demo data')
-    }
-    setSeeding(false)
-  }
-
   const icsDownloadEvents = useMemo(
     () =>
       bookings
@@ -267,14 +268,6 @@ function TutoringCalendarPage() {
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
-          <button
-            type="button"
-            disabled={seeding}
-            onClick={() => void handleSeedDemo()}
-            className="border border-line px-3 py-1.5 text-sm font-semibold hover:bg-bg-elevated disabled:opacity-60"
-          >
-            {seeding ? 'Loading demo…' : 'Load demo data'}
-          </button>
           <AdminNav current="calendar" />
           <button
             type="button"
