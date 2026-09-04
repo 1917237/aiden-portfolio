@@ -79,12 +79,11 @@ Audit of student + admin surfaces. Use this to track fixes before and after go-l
 
 ## Go-live checklist
 
-1. Run migrations **33** through **37** in Supabase SQL editor
-2. Deploy `npx supabase functions deploy calendar-feed --project-ref <ref>`
+1. Generate `supabase/baseline/baseline.sql` from live DB (see `supabase/baseline/README.md`) — do **not** re-run archive `01`–`49` on live
+2. Deploy `npx supabase functions deploy calendar-feed --project-ref <ref>` (and invite-student if used)
 3. Auth redirect URLs for production domain + reset-password
-4. Hide / remove **Load demo data** on calendar
-5. Add meeting link (global or per-lesson)
-6. Buy domain + point DNS (e.g. Spaceship `aidenluo.com`)
+4. Buy domain + point DNS (e.g. Spaceship `aidenluo.com`) + host site with `VITE_SUPABASE_*` env vars
+5. Set join links per class / weekly series in admin
 
 ---
 
