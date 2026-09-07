@@ -502,10 +502,10 @@ function TutoringStudentsPage() {
           <button
             type="button"
             aria-label="Close student details"
-            className="fixed inset-0 z-40 bg-black/20"
+            className="tutoring-modal-backdrop fixed inset-0 z-40 bg-black/20"
             onClick={closeStudent}
           />
-          <aside className="fixed inset-y-0 right-0 z-50 flex w-full max-w-md flex-col border-l border-line bg-white shadow-xl">
+          <aside className="tutoring-drawer fixed inset-y-0 right-0 z-50 flex w-full max-w-md flex-col border-l border-line bg-white shadow-xl">
             <div className="border-b border-line px-5 py-4">
               <div className="flex items-start justify-between gap-3">
                 <h2 className="font-display text-2xl font-semibold">{selectedStudent.full_name}</h2>

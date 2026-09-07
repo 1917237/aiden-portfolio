@@ -2,12 +2,14 @@ import { useEffect, useState } from 'react'
 import { Navigate } from 'react-router-dom'
 import { supabase } from '../../lib/supabase'
 import { DEFAULT_CLASS_RATE_CENTS } from '../../tutoring/config'
+import { TUTORING_BRAND_NAME } from '../../tutoring/brand'
 import { maintainRollingWeeklySeries } from '../../tutoring/maintainRollingWeekly'
 import { AdminTimezoneProvider } from '../../tutoring/AdminTimezoneContext'
 import { loadDisplayTimezone, persistDisplayTimezone, resolveDisplayTimezone } from '../../tutoring/timezoneUtils'
 import { useTutoringSession } from '../../tutoring/useTutoringSession'
 import { AdminNav } from './AdminNav'
 import { AdminTools } from './AdminTools'
+import { StudentBalanceChip } from './StudentBalanceChip'
 import { StudentBooking } from './StudentBooking'
 import { StudentClassesSection } from './StudentClassesSection'
 import { StudentCreditsPanel } from './StudentCreditsPanel'
@@ -16,8 +18,6 @@ import { StudentSignedInMenu } from './StudentSignedInMenu'
 import { StudentLessonModal } from './StudentLessonModal'
 import type { StudentLesson } from './StudentLessonsCalendar'
 import { StudentUpcomingPanel } from './StudentUpcomingPanel'
-import { TimesInTimezoneLabel } from './TimesInTimezoneLabel'
-import { TimezoneSelect } from './TimezoneSelect'
 
 export function TutoringDashboard() {
   const { session, profile, loading, profileError, reloadProfile } = useTutoringSession()
@@ -69,9 +69,7 @@ export function TutoringDashboard() {
 
   if (loading) {
     return (
-      <div className="mx-auto max-w-6xl px-5 py-20 text-ink-muted">
-        Loading…
-      </div>
+      <div className="mx-auto max-w-6xl px-5 py-20 text-ink-muted">Loading…</div>
     )
   }
 
@@ -82,14 +80,14 @@ export function TutoringDashboard() {
         <button
           type="button"
           onClick={() => void reloadProfile()}
-          className="mt-4 border border-line px-3 py-1.5 text-sm font-semibold"
+          className="tutoring-btn mt-4"
         >
           Try again
         </button>
         <button
           type="button"
           onClick={() => void supabase.auth.signOut()}
-          className="mt-4 ml-3 border border-line px-3 py-1.5 text-sm font-semibold"
+          className="tutoring-btn mt-4 ml-3"
         >
           Sign out
         </button>
@@ -102,13 +100,13 @@ export function TutoringDashboard() {
   if (isAdmin) {
     return (
       <AdminTimezoneProvider profileDisplayTimezone={profile.display_timezone}>
-        <div className="w-full px-4 py-6 md:px-6 max-w-none">
-          <div className="flex items-start justify-between gap-4">
+        <div className="w-full max-w-none px-4 py-6 md:px-6">
+          <div className="tutoring-topbar tutoring-enter">
             <div>
-              <p className="text-sm font-medium tracking-wide text-sage uppercase">Tutoring</p>
-              <h1 className="mt-2 font-display text-4xl font-semibold tracking-tight">Admin dashboard</h1>
-              <p className="mt-3 text-ink-muted">
-                Signed in as <strong className="text-ink">{profile.full_name}</strong> (admin)
+              <p className="tutoring-eyebrow">{TUTORING_BRAND_NAME}</p>
+              <h1 className="tutoring-title">Admin dashboard</h1>
+              <p className="mt-2 text-sm text-ink-muted">
+                Signed in as <strong className="text-ink">{profile.full_name}</strong>
               </p>
             </div>
             <div className="flex flex-wrap gap-2">
@@ -116,7 +114,7 @@ export function TutoringDashboard() {
               <button
                 type="button"
                 onClick={() => void supabase.auth.signOut()}
-                className="border border-line px-3 py-1.5 text-sm font-semibold hover:bg-bg-elevated"
+                className="tutoring-btn"
               >
                 Sign out
               </button>
@@ -129,11 +127,11 @@ export function TutoringDashboard() {
   }
 
   return (
-    <div className="mx-auto max-w-6xl w-full px-4 py-6 md:px-6 md:py-20">
-      <div className="flex items-start justify-between gap-4">
+    <div className="mx-auto w-full max-w-6xl px-4 py-8 md:px-6 md:py-12">
+      <div className="tutoring-topbar tutoring-enter">
         <div>
-          <p className="text-sm font-medium tracking-wide text-sage uppercase">Tutoring</p>
-          <h1 className="mt-2 font-display text-4xl font-semibold tracking-tight">My schedule</h1>
+          <p className="tutoring-eyebrow">{TUTORING_BRAND_NAME}</p>
+          <h1 className="tutoring-title">My schedule</h1>
           <StudentSignedInMenu
             fullName={displayName || profile.full_name}
             onSaved={(nextName) => {
@@ -142,52 +140,60 @@ export function TutoringDashboard() {
             }}
           />
         </div>
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-wrap items-center gap-2">
+          <StudentBalanceChip
+            balanceCents={profile.credit_balance_cents}
+            classRateCents={profile.class_rate_cents ?? DEFAULT_CLASS_RATE_CENTS}
+          />
           <StudentNav current="schedule" />
           <button
             type="button"
             onClick={() => void supabase.auth.signOut()}
-            className="border border-line px-3 py-1.5 text-sm font-semibold hover:bg-bg-elevated"
+            className="tutoring-btn"
           >
             Sign out
           </button>
         </div>
       </div>
 
-      <div className="mt-8 flex flex-col items-end gap-1">
-        <TimesInTimezoneLabel timeZone={timeZone} />
-        <TimezoneSelect value={timeZone} onChange={handleTimezoneChange} />
+      {/* Class ops first: upcoming → book → calendar; credits below */}
+      <div className="tutoring-enter tutoring-enter-delay-1">
+        <StudentUpcomingPanel
+          studentId={profile.id}
+          timeZone={timeZone}
+          refreshKey={scheduleRefreshKey}
+          onChanged={handleStudentScheduleChanged}
+          onSelectLesson={setSelectedLesson}
+        />
       </div>
 
-      <StudentCreditsPanel
-        studentId={profile.id}
-        creditBalance={profile.credit_balance_cents}
-        classRateCents={profile.class_rate_cents ?? DEFAULT_CLASS_RATE_CENTS}
-        refreshKey={scheduleRefreshKey}
-      />
+      <div className="tutoring-enter tutoring-enter-delay-2">
+        <StudentBooking
+          creditBalance={profile.credit_balance_cents}
+          classRateCents={profile.class_rate_cents ?? DEFAULT_CLASS_RATE_CENTS}
+          onBooked={handleStudentScheduleChanged}
+          timeZone={timeZone}
+          onTimeZoneChange={handleTimezoneChange}
+        />
+      </div>
 
-      <StudentUpcomingPanel
-        studentId={profile.id}
-        timeZone={timeZone}
-        refreshKey={scheduleRefreshKey}
-        onChanged={handleStudentScheduleChanged}
-        onSelectLesson={setSelectedLesson}
-      />
+      <div className="tutoring-enter tutoring-enter-delay-3">
+        <StudentClassesSection
+          studentId={profile.id}
+          timeZone={timeZone}
+          refreshKey={scheduleRefreshKey}
+          onSelectLesson={setSelectedLesson}
+        />
+      </div>
 
-      <StudentBooking
-        creditBalance={profile.credit_balance_cents}
-        classRateCents={profile.class_rate_cents ?? DEFAULT_CLASS_RATE_CENTS}
-        onBooked={handleStudentScheduleChanged}
-        timeZone={timeZone}
-        onTimeZoneChange={handleTimezoneChange}
-      />
-
-      <StudentClassesSection
-        studentId={profile.id}
-        timeZone={timeZone}
-        refreshKey={scheduleRefreshKey}
-        onSelectLesson={setSelectedLesson}
-      />
+      <div className="tutoring-enter tutoring-enter-delay-4">
+        <StudentCreditsPanel
+          studentId={profile.id}
+          creditBalance={profile.credit_balance_cents}
+          classRateCents={profile.class_rate_cents ?? DEFAULT_CLASS_RATE_CENTS}
+          refreshKey={scheduleRefreshKey}
+        />
+      </div>
 
       {selectedLesson ? (
         <StudentLessonModal

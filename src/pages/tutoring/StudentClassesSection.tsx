@@ -80,10 +80,12 @@ export function StudentClassesSection({
   )
 
   return (
-    <section className="mt-8 border-t border-line pt-8">
+    <section className="mt-10 pb-10">
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h2 className="font-display text-3xl font-semibold tracking-tight">My classes</h2>
+          <h2 className="font-display text-2xl font-semibold tracking-tight md:text-3xl">
+            My classes
+          </h2>
           <p className="mt-1 text-sm text-ink-muted">
             Click a lesson to cancel or reschedule. Sync to your phone calendar below.
           </p>

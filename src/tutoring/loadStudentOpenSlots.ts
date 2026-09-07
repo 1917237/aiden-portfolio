@@ -52,9 +52,8 @@ export async function loadStudentOpenSlots(
 
   let bookedRanges = occupiedRanges
   if (options?.excludeBookingStartIso) {
-    bookedRanges = bookedRanges.filter(
-      (range) => range.start_time !== options.excludeBookingStartIso,
-    )
+    const excludeMs = timeKey(options.excludeBookingStartIso)
+    bookedRanges = bookedRanges.filter((range) => timeKey(range.start_time) !== excludeMs)
   }
 
   const realSlotsByStart = new Map<number, AvailabilitySlot>()

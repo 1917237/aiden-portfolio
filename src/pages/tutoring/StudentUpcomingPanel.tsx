@@ -114,7 +114,7 @@ export function StudentUpcomingPanel({
         .select('id, series_id, duration_minutes, status, availability_slots(start_time, end_time)')
         .eq('student_id', studentId)
         .eq('status', 'booked')
-      bookingRows = fallback.data
+      bookingRows = fallback.data as typeof bookingRows
       bookingsError = fallback.error
     }
 
@@ -291,7 +291,7 @@ export function StudentUpcomingPanel({
 
   if (loading && !hasLoadedOnceRef.current) {
     return (
-      <div className="mt-8 border border-line bg-bg-elevated/60 p-6 text-sm text-ink-muted">
+      <div className="tutoring-panel mt-8 p-6 text-sm text-ink-muted">
         Loading your upcoming classes…
       </div>
     )
@@ -306,7 +306,7 @@ export function StudentUpcomingPanel({
       {error ? <p className="text-sm text-red-700">{error}</p> : null}
 
       {nextLesson ? (
-        <div className="border border-line bg-bg-elevated/60 p-6">
+        <div className="tutoring-panel p-6">
           <button
             type="button"
             onClick={() => openLesson(nextLesson)}
@@ -332,7 +332,7 @@ export function StudentUpcomingPanel({
               href={nextLesson.meeting_url}
               target="_blank"
               rel="noopener noreferrer"
-              className="mt-4 inline-flex bg-sage-deep px-4 py-2.5 text-sm font-semibold text-white hover:bg-sage"
+              className="tutoring-btn-primary mt-4 inline-flex px-4 py-2.5 text-sm"
             >
               Join class
             </a>
@@ -341,7 +341,7 @@ export function StudentUpcomingPanel({
           )}
         </div>
       ) : (
-        <div className="border border-line bg-bg-elevated/60 p-6">
+        <div className="tutoring-panel p-6">
           <p className="text-sm font-semibold text-ink-muted">Upcoming class</p>
           <p className="mt-2 text-ink-muted">No upcoming classes booked.</p>
         </div>

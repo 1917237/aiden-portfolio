@@ -18,9 +18,7 @@ export function StudentNav({ current }: Props) {
   }, [current, markAllRead, reload])
 
   const linkClass = (page: Props['current']) =>
-    `relative border border-line px-3 py-1.5 text-sm font-semibold hover:bg-bg-elevated ${
-      current === page ? 'bg-bg-elevated' : ''
-    }`
+    `tutoring-nav-link ${current === page ? 'tutoring-nav-link-active' : ''}`
 
   return (
     <div className="flex flex-wrap gap-2">
@@ -31,7 +29,7 @@ export function StudentNav({ current }: Props) {
         Notifications
         {unreadCount > 0 && current !== 'notifications' ? (
           <span
-            className="absolute -right-1.5 -top-1.5 inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-red-600 px-1 text-[10px] font-bold leading-none text-white"
+            className="absolute -right-1.5 -top-1.5 inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-red-700 px-1 text-[10px] font-bold leading-none text-white"
             aria-label={`${unreadCount} unread notifications`}
           >
             {unreadCount > 9 ? '9+' : unreadCount}

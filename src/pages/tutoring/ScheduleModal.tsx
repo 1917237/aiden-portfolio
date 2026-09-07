@@ -437,8 +437,8 @@ export function ScheduleModal({
       ]
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/40 p-4 sm:items-center">
-      <div className="max-h-[92vh] w-full max-w-md overflow-y-auto border border-line bg-white shadow-lg">
+    <div className="tutoring-modal-backdrop fixed inset-0 z-50 flex items-end justify-center bg-black/40 p-4 sm:items-center">
+      <div className="tutoring-modal-panel max-h-[92vh] w-full max-w-md overflow-y-auto border border-line bg-white shadow-lg">
         <div className="flex items-center justify-between border-b border-line px-5 py-4">
           <h2 className="font-display text-2xl font-semibold">Schedule</h2>
           <button
@@ -851,7 +851,7 @@ export function ScheduleModal({
         variant="admin"
         busy={busy}
         onClose={() => setCancelDialogOpen(false)}
-        onConfirm={(comment) => {
+        onConfirm={({ comment }) => {
           setCancelDialogOpen(false)
           void handleCancelLesson(comment)
         }}

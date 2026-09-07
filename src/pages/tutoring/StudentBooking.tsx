@@ -14,7 +14,6 @@ import {
 import { STUDENT_BOOKING_CREDIT_HINT } from '../../tutoring/studentCreditCopy'
 import { StudentBookingModal } from './StudentBookingModal'
 import { buildSlotsByCell, buildTakenCellsByKey, StudentWhen2MeetGrid } from './StudentWhen2MeetGrid'
-import { TimesInTimezoneLabel } from './TimesInTimezoneLabel'
 import { TimezoneSelect } from './TimezoneSelect'
 
 type Props = {
@@ -127,11 +126,14 @@ export function StudentBooking({
   }
 
   return (
-    <section className="mt-8 border-t border-line pt-8">
-      <h2 className="font-display text-3xl font-semibold tracking-tight">Book a lesson</h2>
+    <section className="mt-10">
+      <h2 className="font-display text-2xl font-semibold tracking-tight md:text-3xl">Book a lesson</h2>
 
-      <div className="mt-4 border border-sage/30 bg-sage/10 px-4 py-3 text-sm text-ink">
-        <p>Green cells are open, amber cells are taken by another student. Click a green cell to choose lesson length and confirm.</p>
+      <div className="tutoring-panel mt-4 px-4 py-3 text-sm text-ink">
+        <p>
+          Green cells are open, amber cells are taken by another student. Click a green cell to
+          choose lesson length and confirm.
+        </p>
         <p className="mt-1 text-ink-muted">{STUDENT_BOOKING_CREDIT_HINT}</p>
       </div>
 
@@ -142,7 +144,7 @@ export function StudentBooking({
           <button
             type="button"
             onClick={() => shiftWeek(-1)}
-            className="border border-line px-3 py-1.5 text-sm font-semibold hover:bg-bg-elevated"
+            className="tutoring-btn"
             aria-label="Previous week"
           >
             ←
@@ -150,14 +152,14 @@ export function StudentBooking({
           <button
             type="button"
             onClick={goToTodayWeek}
-            className="border border-line px-3 py-1.5 text-sm font-semibold hover:bg-bg-elevated"
+            className="tutoring-btn"
           >
             Today
           </button>
           <button
             type="button"
             onClick={() => shiftWeek(1)}
-            className="border border-line px-3 py-1.5 text-sm font-semibold hover:bg-bg-elevated"
+            className="tutoring-btn"
             aria-label="Next week"
           >
             →
@@ -167,11 +169,7 @@ export function StudentBooking({
           </span>
         </div>
 
-        {onTimeZoneChange ? (
-          <TimesInTimezoneLabel timeZone={timeZone} />
-        ) : (
-          <TimezoneSelect value={timeZone} onChange={handleTimezoneChange} />
-        )}
+        <TimezoneSelect value={timeZone} onChange={handleTimezoneChange} />
       </div>
 
       {!weekStartKey || (loading && !hasLoaded) ? (

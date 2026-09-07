@@ -142,7 +142,7 @@ export function AdminBookingRow({
         variant="admin"
         busy={cancelState === 'loading'}
         onClose={() => setCancelDialogOpen(false)}
-        onConfirm={(comment) => {
+        onConfirm={({ comment }) => {
           setCancelDialogOpen(false)
           onCancel(comment)
         }}

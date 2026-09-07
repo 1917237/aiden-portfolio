@@ -1,13 +1,13 @@
 # Database baseline
 
-`baseline.sql` is the **single** schema file for this tutoring app: tables, functions, triggers, RLS, grants — matching the live Supabase project after all archived migrations through `49`.
+`baseline.sql` is the **single** schema file for this tutoring app: tables, functions, triggers, RLS, grants.
 
-It is **not** checked in until you generate it from your project (so we don’t invent a fake dump).
+It matches production structure through late-cancel waive inbox support.
 
 ## Option A — script (recommended)
 
 1. In Supabase: **Project Settings → Database → Connection string → URI**  
-   Use the **direct** connection (port `5432`), not the pooler, for dumps when possible.  
+   Prefer the **Session pooler** URI if direct `db.*` fails DNS (IPv6).  
    Copy the URI (replace `[YOUR-PASSWORD]` with the DB password).
 2. Install Postgres client tools once (macOS):
 
@@ -21,7 +21,7 @@ It is **not** checked in until you generate it from your project (so we don’t 
 3. From the repo root:
 
    ```bash
-   export DATABASE_URL='postgresql://postgres:YOUR_PASSWORD@db.YOUR_REF.supabase.co:5432/postgres'
+   export DATABASE_URL='postgresql://postgres.PROJECT_REF:PASSWORD@aws-0-REGION.pooler.supabase.com:5432/postgres'
    ./scripts/dump-supabase-baseline.sh
    ```
 
@@ -37,20 +37,13 @@ npx supabase db dump -f supabase/baseline/baseline.sql
 
 ## If dump fails: “could not translate host name” / unknown host
 
-Supabase **direct** hosts (`db.….supabase.co`) are often **IPv6-only**. Many Macs/Wi‑Fi networks can’t resolve or reach them.
-
-**Fix:** use the **Session pooler** URI instead (Connect → Session pooler):
+Use the **Session pooler** URI (Connect → Session pooler):
 
 ```text
 postgresql://postgres.PROJECT_REF:PASSWORD@aws-0-REGION.pooler.supabase.com:5432/postgres
 ```
 
-Notes:
-
-- User is `postgres.PROJECT_REF` (not just `postgres`).
-- Prefer **Session** mode / port **5432** for `pg_dump` (not Transaction / 6543).
-- Keep the whole URI in **single quotes** in Terminal.
-
+## What’s in the dump
 
 | Included | Usually not included |
 |----------|----------------------|
@@ -58,9 +51,9 @@ Notes:
 | Functions, triggers, RLS | Auth users (managed by Supabase Auth) |
 | Grants on public schema | Storage buckets, secrets, edge function code |
 
-Data stays in the live project. The baseline is for **recreating the structure** on a new project or documenting production.
+Data stays in the live project. The baseline is for **recreating the structure** on a new project.
 
-## After the baseline exists
+## After regenerating
 
-- Archive under `../archive/migrations-01-49/` is history only.
-- New features → `../migrations/50-your-change.sql` (run on live, then keep in git).
+- Keep archive `01`–`49` as history only.
+- Put brand-new changes in `../migrations/50-….sql`, run on live, then fold into baseline (or re-dump) so you stay on one schema file.

@@ -1,6 +1,7 @@
 import { Navigate } from 'react-router-dom'
 import { useEffect } from 'react'
 import { supabase } from '../../lib/supabase'
+import { TUTORING_BRAND_NAME } from '../../tutoring/brand'
 import { useStudentNotifications } from '../../tutoring/useStudentNotifications'
 import { useTutoringSession } from '../../tutoring/useTutoringSession'
 import { AdminTimezoneProvider } from '../../tutoring/AdminTimezoneContext'
@@ -23,6 +24,13 @@ function notificationTone(kind: string): {
   label: string
   labelClass: string
 } {
+  if (kind === 'late_cancel_waive_request') {
+    return {
+      card: 'border-amber-300 bg-amber-50/70',
+      label: 'Waive ask',
+      labelClass: 'bg-amber-100 text-amber-900',
+    }
+  }
   if (kind === 'class_cancelled' || kind === 'student_cancelled') {
     return {
       card: 'border-red-200 bg-red-50/70',
@@ -104,15 +112,13 @@ export function TutoringNotifications() {
 
   const content = (
     <div
-      className={`w-full px-4 py-6 md:px-6 ${isAdmin ? 'max-w-none' : 'mx-auto max-w-6xl md:py-20'}`}
+      className={`w-full px-4 py-6 md:px-6 ${isAdmin ? 'max-w-none' : 'mx-auto max-w-6xl md:py-12'}`}
     >
-      <div className="flex flex-wrap items-start justify-between gap-4">
+      <div className="tutoring-topbar">
         <div>
-          <p className="text-sm font-medium tracking-wide text-sage uppercase">Tutoring</p>
-          <h1 className="mt-2 font-display text-4xl font-semibold tracking-tight">
-            Notifications
-          </h1>
-          <p className="mt-3 text-ink-muted">
+          <p className="tutoring-eyebrow">{TUTORING_BRAND_NAME}</p>
+          <h1 className="tutoring-title">Notifications</h1>
+          <p className="mt-2 text-sm text-ink-muted">
             {isAdmin
               ? 'New student bookings and other updates.'
               : 'Class cancellations, weekly skips, and other updates.'}
@@ -127,7 +133,7 @@ export function TutoringNotifications() {
           <button
             type="button"
             onClick={() => void supabase.auth.signOut()}
-            className="border border-line px-3 py-1.5 text-sm font-semibold hover:bg-bg-elevated"
+            className="tutoring-btn"
           >
             Sign out
           </button>

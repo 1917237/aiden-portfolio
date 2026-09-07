@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { supabase } from '../../lib/supabase'
 import {
   type BookedRange,
@@ -39,6 +40,7 @@ import {
 import { TimesInTimezoneLabel } from './TimesInTimezoneLabel'
 import { CancelClassDialog } from './CancelClassDialog'
 import type { StudentLesson } from './StudentLessonsCalendar'
+import { getTutoringPortalRoot } from './tutoringPortal'
 
 type Props = {
   lesson: StudentLesson
@@ -277,7 +279,11 @@ export function StudentLessonModal({
     }
   }
 
-  async function handleCancel(comment: string | null) {
+  async function handleCancel(payload: {
+    comment: string | null
+    requestWaive: boolean
+    waiveReason: string | null
+  }) {
     if (!canEdit) return
 
     setBusy(true)
@@ -286,21 +292,26 @@ export function StudentLessonModal({
     try {
       const { error: rpcError } = await supabase.rpc('student_cancel_my_booking', {
         p_booking_id: lesson.id,
-        p_comment: comment,
+        p_comment: payload.comment,
+        p_request_waive: payload.requestWaive,
+        p_waive_reason: payload.waiveReason,
       })
 
       if (rpcError) {
         if (isMissingRpc(rpcError.message)) {
           throw new Error(
-            'Run supabase/46-student-cancel-comment.sql in the Supabase SQL Editor, then try again.',
+            'Run the Late-cancel waive section at the bottom of supabase/baseline/baseline.sql in the Supabase SQL Editor, then try again.',
           )
         }
         throw rpcError
       }
 
+      const late = isLateCancel(lesson.start_time)
       finishSuccess(
-        isLateCancel(lesson.start_time)
-          ? 'Class cancelled. Credits were not returned (inside 12 hours of class).'
+        late
+          ? payload.requestWaive
+            ? 'Class cancelled. Credits not returned yet — Aiden will review your waive request.'
+            : 'Class cancelled. Credits were not returned (inside 12 hours of class).'
           : 'Class cancelled. Credits returned to your balance.',
       )
     } catch (err) {
@@ -320,9 +331,9 @@ export function StudentLessonModal({
   const showCreditAdjustPreview =
     durationMinutes !== initialDuration && !durationError && creditDeltaCents !== 0
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/40 p-4 sm:items-center">
-      <div className="max-h-[92vh] w-full max-w-5xl overflow-y-auto border border-line bg-white shadow-lg">
+  return createPortal(
+    <div className="tutoring-modal-backdrop fixed inset-0 z-50 flex items-end justify-center bg-black/40 p-4 sm:items-center">
+      <div className="tutoring-modal-panel max-h-[92vh] w-full max-w-5xl overflow-y-auto border border-line bg-white shadow-lg">
         <div className="flex items-center justify-between border-b border-line px-5 py-4">
           <h2 className="font-display text-2xl font-semibold">
             {canEdit ? 'Reschedule class' : 'Your class'}
@@ -552,11 +563,12 @@ export function StudentLessonModal({
         busy={busy}
         lessonStartIso={lesson.start_time}
         onClose={() => setCancelDialogOpen(false)}
-        onConfirm={(comment) => {
+        onConfirm={(payload) => {
           setCancelDialogOpen(false)
-          void handleCancel(comment)
+          void handleCancel(payload)
         }}
       />
-    </div>
+    </div>,
+    getTutoringPortalRoot(),
   )
 }

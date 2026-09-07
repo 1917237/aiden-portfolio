@@ -22,14 +22,6 @@ type WeeklyRow = {
 
 type LinkRow = IndividualRow | WeeklyRow
 
-type LateCancelRow = {
-  id: string
-  charged_cents: number
-  student_name: string
-  start_time: string
-  end_time: string
-}
-
 type Props = {
   refreshKey?: number
 }
@@ -49,7 +41,6 @@ function unwrapProfile(raw: unknown) {
 export function AdminMeetingLinksPanel({ refreshKey = 0 }: Props) {
   const { timeZone } = useAdminTimezone()
   const [rows, setRows] = useState<LinkRow[]>([])
-  const [lateCancels, setLateCancels] = useState<LateCancelRow[]>([])
   const [draftByKey, setDraftByKey] = useState<Record<string, string>>({})
   const [loading, setLoading] = useState(true)
   const hasLoadedRef = useRef(false)
@@ -66,9 +57,9 @@ export function AdminMeetingLinksPanel({ refreshKey = 0 }: Props) {
       supabase
         .from('bookings')
         .select(
-          'id, series_id, status, meeting_url, charged_cents, availability_slots(start_time, end_time), profiles!bookings_student_id_fkey(full_name)',
+          'id, series_id, status, meeting_url, availability_slots(start_time, end_time), profiles!bookings_student_id_fkey(full_name)',
         )
-        .in('status', ['booked', 'cancelled']),
+        .eq('status', 'booked'),
       supabase
         .from('weekly_series')
         .select('id, meeting_url, active, profiles!weekly_series_student_id_fkey(full_name)')
@@ -100,7 +91,6 @@ export function AdminMeetingLinksPanel({ refreshKey = 0 }: Props) {
 
     const now = Date.now()
     const nextRows: LinkRow[] = []
-    const nextLate: LateCancelRow[] = []
     const drafts: Record<string, string> = {}
     const weeklySeen = new Set<string>()
 
@@ -118,55 +108,41 @@ export function AdminMeetingLinksPanel({ refreshKey = 0 }: Props) {
       if (!slot?.start_time) continue
       const name = unwrapProfile(row.profiles)
 
-      if (row.status === 'booked' && new Date(slot.start_time).getTime() >= now) {
-        const seriesId = (row.series_id as string | null) ?? null
-        const bookingUrl = ((row.meeting_url as string | null) ?? '').trim()
+      if (new Date(slot.start_time).getTime() < now) continue
 
-        if (seriesId) {
-          const seriesUrl = seriesMeetingById.get(seriesId)
-          // Show once only when the series itself still needs a link.
-          if (!seriesUrl && !weeklySeen.has(seriesId)) {
-            weeklySeen.add(seriesId)
-            weeklyById.set(seriesId, {
-              series_id: seriesId,
-              student_name: seriesNameById.get(seriesId) ?? name,
-              start_time: slot.start_time,
-              end_time: slot.end_time,
-              upcoming_count: 1,
-            })
-            drafts[`weekly:${seriesId}`] = ''
-          } else if (!seriesUrl && weeklyById.has(seriesId)) {
-            const existing = weeklyById.get(seriesId)!
-            existing.upcoming_count += 1
-            if (slot.start_time < existing.start_time) {
-              existing.start_time = slot.start_time
-              existing.end_time = slot.end_time
-            }
-          }
-        } else if (!bookingUrl) {
-          nextRows.push({
-            kind: 'individual',
-            id: row.id as string,
-            student_name: name,
+      const seriesId = (row.series_id as string | null) ?? null
+      const bookingUrl = ((row.meeting_url as string | null) ?? '').trim()
+
+      if (seriesId) {
+        const seriesUrl = seriesMeetingById.get(seriesId)
+        // Show once only when the series itself still needs a link.
+        if (!seriesUrl && !weeklySeen.has(seriesId)) {
+          weeklySeen.add(seriesId)
+          weeklyById.set(seriesId, {
+            series_id: seriesId,
+            student_name: seriesNameById.get(seriesId) ?? name,
             start_time: slot.start_time,
             end_time: slot.end_time,
+            upcoming_count: 1,
           })
-          drafts[`individual:${row.id}`] = ''
+          drafts[`weekly:${seriesId}`] = ''
+        } else if (!seriesUrl && weeklyById.has(seriesId)) {
+          const existing = weeklyById.get(seriesId)!
+          existing.upcoming_count += 1
+          if (slot.start_time < existing.start_time) {
+            existing.start_time = slot.start_time
+            existing.end_time = slot.end_time
+          }
         }
-      }
-
-      if (
-        row.status === 'cancelled' &&
-        typeof row.charged_cents === 'number' &&
-        row.charged_cents > 0
-      ) {
-        nextLate.push({
+      } else if (!bookingUrl) {
+        nextRows.push({
+          kind: 'individual',
           id: row.id as string,
-          charged_cents: row.charged_cents,
           student_name: name,
           start_time: slot.start_time,
           end_time: slot.end_time,
         })
+        drafts[`individual:${row.id}`] = ''
       }
     }
 
@@ -182,10 +158,8 @@ export function AdminMeetingLinksPanel({ refreshKey = 0 }: Props) {
     }
 
     nextRows.sort((a, b) => a.start_time.localeCompare(b.start_time))
-    nextLate.sort((a, b) => b.start_time.localeCompare(a.start_time))
 
     setRows(nextRows)
-    setLateCancels(nextLate)
     setDraftByKey(drafts)
     hasLoadedRef.current = true
     setLoading(false)
@@ -246,22 +220,6 @@ export function AdminMeetingLinksPanel({ refreshKey = 0 }: Props) {
       setSuccessKey((current) => (current === key ? null : current))
       void load()
     }, 750)
-  }
-
-  async function waiveLateCancel(id: string) {
-    setBusyKey(id)
-    setError(null)
-    setMessage(null)
-    const { error: rpcError } = await supabase.rpc('admin_waive_late_cancel', {
-      p_booking_id: id,
-    })
-    setBusyKey(null)
-    if (rpcError) {
-      setError(rpcError.message)
-      return
-    }
-    setMessage('Late fee waived — credits refunded.')
-    void load()
   }
 
   if (loading && !hasLoadedRef.current) {
@@ -355,38 +313,6 @@ export function AdminMeetingLinksPanel({ refreshKey = 0 }: Props) {
           </ul>
         )}
       </div>
-
-      {lateCancels.length > 0 ? (
-        <div>
-          <h3 className="font-semibold">Late cancels (credits kept)</h3>
-          <p className="mt-1 text-xs text-ink-muted">
-            Student cancelled inside 12 hours. Refund if you waive the fee.
-          </p>
-          <ul className="mt-3 space-y-2">
-            {lateCancels.map((row) => (
-              <li
-                key={row.id}
-                className="flex flex-wrap items-center justify-between gap-2 border border-red-200 bg-red-50/50 px-4 py-3"
-              >
-                <div>
-                  <p className="font-semibold">{row.student_name}</p>
-                  <p className="text-sm text-ink-muted">
-                    {formatSlotRange(row.start_time, row.end_time, timeZone)}
-                  </p>
-                </div>
-                <button
-                  type="button"
-                  disabled={busyKey === row.id}
-                  onClick={() => void waiveLateCancel(row.id)}
-                  className="border border-line bg-white px-3 py-1.5 text-sm font-semibold hover:bg-bg-elevated disabled:opacity-60"
-                >
-                  {busyKey === row.id ? 'Refunding…' : 'Waive fee'}
-                </button>
-              </li>
-            ))}
-          </ul>
-        </div>
-      ) : null}
     </div>
   )
 }

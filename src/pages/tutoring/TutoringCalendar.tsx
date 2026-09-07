@@ -119,7 +119,7 @@ function TutoringCalendarPage() {
         )
         .in('status', ['booked', 'completed'])
         .order('created_at', { ascending: true })
-      bookingsData = fallback.data
+      bookingsData = fallback.data as typeof bookingsData
       bookingsError = fallback.error
     }
 

@@ -10,6 +10,11 @@ import {
   isoToZonedParts,
   startOfWeekFromDateKey,
 } from '../../tutoring/timezoneUtils'
+import {
+  CalendarNowLine,
+  isNowWithinScheduleHours,
+  useNowInTimezone,
+} from './CalendarNowLine'
 
 export type StudentLesson = {
   id: string
@@ -145,6 +150,12 @@ export function StudentLessonsCalendar({ lessons, timeZone, onSelectLesson }: Pr
   }, [])
 
   const gridHeight = hourLabels.length * HOUR_HEIGHT_PX
+  const now = useNowInTimezone(timeZone)
+  const todayInWeek = weekDays.some((day) => day.isToday)
+  const showNowLine =
+    view === 'week' && todayInWeek && isNowWithinScheduleHours(now.startMinutes)
+  const nowTop =
+    ((now.startMinutes - GRID_START_MINUTES) / 60) * HOUR_HEIGHT_PX
 
   function goToToday() {
     const nextToday = getDateKeyInTimezone(new Date(), timeZone)
@@ -260,7 +271,8 @@ export function StudentLessonsCalendar({ lessons, timeZone, onSelectLesson }: Pr
                 ))}
               </div>
 
-              <div className="flex flex-1">
+              <div className="relative flex flex-1">
+                <CalendarNowLine topPx={nowTop} visible={showNowLine} />
                 {weekDays.map((day) => {
                   const dayLessons = lessonsByDay.get(day.dateKey) ?? []
                   return (

@@ -1,0 +1,241 @@
+@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&family=Source+Serif+4:opsz,wght@8..60,500;8..60,600;8..60,700&display=swap');
+
+/* Tutoring-only design tokens (portfolio theme untouched).
+   Remaps existing utilities: bg-bg, text-sage, font-display, border-line, etc. */
+.tutoring-app {
+  --font-display: 'Source Serif 4', Georgia, 'Times New Roman', serif;
+  --font-sans: 'Manrope', 'Segoe UI', system-ui, sans-serif;
+
+  --color-bg: #f3f4f1;
+  --color-bg-elevated: #ffffff;
+  --color-ink: #18201c;
+  --color-ink-muted: #5a645c;
+  --color-sage: #2d6a4f;
+  --color-sage-deep: #1b4332;
+  --color-stone: #7a7f76;
+  --color-sky: #4a6670;
+  --color-sand: #e7e9e3;
+  --color-line: #d5d9d2;
+
+  min-height: 100vh;
+  font-family: var(--font-sans);
+  color: var(--color-ink);
+  background:
+    radial-gradient(ellipse 90% 55% at 100% -5%, #dfe8e2 0%, transparent 50%),
+    radial-gradient(ellipse 70% 45% at 0% 0%, #e8ebe4 0%, transparent 45%),
+    linear-gradient(180deg, #f3f4f1 0%, #eceee9 100%);
+  background-attachment: fixed;
+}
+
+.tutoring-app ::selection {
+  background: color-mix(in srgb, var(--color-sage) 28%, white);
+}
+
+.tutoring-app .tutoring-shell {
+  width: 100%;
+  min-height: 100vh;
+}
+
+.tutoring-app .tutoring-topbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid var(--color-line);
+}
+
+.tutoring-app .tutoring-eyebrow {
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--color-sage);
+}
+
+.tutoring-app .tutoring-title {
+  margin-top: 0.35rem;
+  font-family: var(--font-display);
+  font-size: clamp(1.85rem, 2.5vw, 2.35rem);
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  line-height: 1.15;
+  color: var(--color-ink);
+}
+
+.tutoring-app .tutoring-panel {
+  border: 1px solid var(--color-line);
+  background: color-mix(in srgb, var(--color-bg-elevated) 92%, transparent);
+  box-shadow: 0 1px 2px rgba(24, 32, 28, 0.04);
+}
+
+.tutoring-app .tutoring-btn {
+  border: 1px solid var(--color-line);
+  background: var(--color-bg-elevated);
+  padding: 0.4rem 0.85rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--color-ink);
+  cursor: pointer;
+  transition:
+    background-color 0.2s ease,
+    border-color 0.2s ease,
+    color 0.2s ease,
+    transform 0.15s ease;
+}
+
+.tutoring-app .tutoring-btn:hover {
+  background: var(--color-sand);
+}
+
+.tutoring-app .tutoring-btn:active:not(:disabled) {
+  transform: scale(0.98);
+}
+
+.tutoring-app .tutoring-btn-primary {
+  border: 1px solid var(--color-sage-deep);
+  background: var(--color-sage-deep);
+  color: #fff;
+  cursor: pointer;
+  font-weight: 600;
+  transition:
+    background-color 0.2s ease,
+    border-color 0.2s ease,
+    transform 0.15s ease;
+}
+
+.tutoring-app .tutoring-btn-primary:hover {
+  background: var(--color-sage);
+  border-color: var(--color-sage);
+}
+
+.tutoring-app .tutoring-btn-primary:active:not(:disabled) {
+  transform: scale(0.98);
+}
+
+.tutoring-app .tutoring-nav-link {
+  position: relative;
+  border: 1px solid var(--color-line);
+  background: transparent;
+  padding: 0.4rem 0.85rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--color-ink-muted);
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease,
+    border-color 0.2s ease;
+}
+
+.tutoring-app .tutoring-nav-link:hover {
+  color: var(--color-ink);
+  background: var(--color-bg-elevated);
+}
+
+.tutoring-app .tutoring-nav-link-active {
+  color: var(--color-ink);
+  background: var(--color-bg-elevated);
+  border-color: color-mix(in srgb, var(--color-sage) 35%, var(--color-line));
+}
+
+.tutoring-app input,
+.tutoring-app select,
+.tutoring-app textarea {
+  border-radius: 0;
+}
+
+.tutoring-app button:focus-visible,
+.tutoring-app a:focus-visible,
+.tutoring-app input:focus-visible,
+.tutoring-app select:focus-visible,
+.tutoring-app textarea:focus-visible {
+  outline: 2px solid var(--color-sage);
+  outline-offset: 2px;
+}
+
+/* Quiet presence: section stagger, modal/drawer enter, CTA press.
+   End transforms at `none` + use fill-mode backwards so fixed/sticky
+   children (cancel dialog, reschedule grid) are not trapped. */
+@keyframes tutoring-fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes tutoring-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes tutoring-drawer-in {
+  from {
+    opacity: 0;
+    transform: translateX(14px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.tutoring-app .tutoring-enter {
+  animation: tutoring-fade-up 0.22s ease backwards;
+}
+
+.tutoring-app .tutoring-enter-delay-1 {
+  animation-delay: 0.04s;
+}
+
+.tutoring-app .tutoring-enter-delay-2 {
+  animation-delay: 0.08s;
+}
+
+.tutoring-app .tutoring-enter-delay-3 {
+  animation-delay: 0.12s;
+}
+
+.tutoring-app .tutoring-enter-delay-4 {
+  animation-delay: 0.16s;
+}
+
+.tutoring-app .tutoring-modal-backdrop {
+  animation: tutoring-fade-in 0.18s ease backwards;
+}
+
+.tutoring-app .tutoring-modal-panel {
+  animation: tutoring-fade-up 0.22s ease backwards;
+}
+
+.tutoring-app .tutoring-drawer {
+  animation: tutoring-drawer-in 0.22s ease backwards;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tutoring-app .tutoring-btn,
+  .tutoring-app .tutoring-btn-primary,
+  .tutoring-app .tutoring-nav-link {
+    transition: none;
+  }
+
+  .tutoring-app .tutoring-btn:active:not(:disabled),
+  .tutoring-app .tutoring-btn-primary:active:not(:disabled) {
+    transform: none;
+  }
+
+  .tutoring-app .tutoring-enter,
+  .tutoring-app .tutoring-modal-backdrop,
+  .tutoring-app .tutoring-modal-panel,
+  .tutoring-app .tutoring-drawer {
+    animation: none;
+  }
+}

@@ -1,6 +1,7 @@
 import { type FormEvent, useState } from 'react'
 import { Navigate } from 'react-router-dom'
 import { supabase } from '../../lib/supabase'
+import { TUTORING_BRAND_NAME, TUTORING_BRAND_TAGLINE } from '../../tutoring/brand'
 import { useTutoringSession } from '../../tutoring/useTutoringSession'
 
 function resetRedirectUrl() {
@@ -68,13 +69,18 @@ export function TutoringLogin() {
 
   return (
     <div className="mx-auto flex min-h-screen max-w-md flex-col justify-center px-5 py-14">
-      <p className="text-sm font-medium tracking-wide text-sage uppercase">Tutoring</p>
-      <h1 className="mt-2 font-display text-4xl font-semibold tracking-tight">Student login</h1>
-      <p className="mt-3 text-ink-muted">
-        This page is only for students with an account. Ask your tutor for the link.
-      </p>
+      <div className="tutoring-enter">
+        <p className="tutoring-eyebrow">{TUTORING_BRAND_NAME}</p>
+        <h1 className="tutoring-title">Student login</h1>
+        <p className="mt-3 text-sm text-ink-muted">
+          {TUTORING_BRAND_TAGLINE}. Sign in with the account your tutor set up for you.
+        </p>
+      </div>
 
-      <form onSubmit={handleSubmit} className="mt-8 space-y-4 border border-line bg-bg-elevated/60 p-6">
+      <form
+        onSubmit={handleSubmit}
+        className="tutoring-panel tutoring-enter tutoring-enter-delay-1 mt-8 space-y-4 p-6"
+      >
         <label className="block">
           <span className="text-sm font-semibold">Email</span>
           <input
@@ -105,7 +111,7 @@ export function TutoringLogin() {
         <button
           type="submit"
           disabled={submitting || resetting || loading}
-          className="w-full bg-sage-deep px-4 py-2 font-semibold text-white disabled:opacity-60"
+          className="tutoring-btn-primary w-full px-4 py-2.5 disabled:opacity-60"
         >
           {submitting ? 'Signing in…' : 'Sign in'}
         </button>
@@ -114,7 +120,7 @@ export function TutoringLogin() {
           type="button"
           onClick={() => void handleResetPassword()}
           disabled={submitting || resetting || loading}
-          className="w-full border border-line bg-white px-4 py-2 font-semibold hover:bg-bg-elevated disabled:opacity-60"
+          className="tutoring-btn w-full disabled:opacity-60"
         >
           {resetting ? 'Sending reset link…' : 'Reset password'}
         </button>

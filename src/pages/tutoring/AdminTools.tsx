@@ -19,6 +19,7 @@ import {
 import { AdminInviteStudent } from './AdminInviteStudent'
 import { AdminWeeklySeriesPanel } from './AdminWeeklySeriesPanel'
 import { AdminMeetingLinksPanel } from './AdminMeetingLinksPanel'
+import { AdminLateCancelExceptions } from './AdminLateCancelExceptions'
 import { CollapsibleSection } from './CollapsibleSection'
 import { TimesInTimezoneLabel } from './TimesInTimezoneLabel'
 import { WeeklyScheduler } from './WeeklyScheduler'
@@ -396,9 +397,14 @@ export function AdminTools({ onUpdated }: Props) {
             )}
           </CollapsibleSection>
 
+          <AdminLateCancelExceptions
+            refreshKey={dataRefreshKey}
+            onChanged={() => refreshAll()}
+          />
+
           <CollapsibleSection
             title="Join links"
-            description="One-off class links, one link per weekly series, and late-cancel waives."
+            description="One-off class links and one link per weekly series."
             defaultOpen={false}
           >
             <AdminMeetingLinksPanel refreshKey={dataRefreshKey} />

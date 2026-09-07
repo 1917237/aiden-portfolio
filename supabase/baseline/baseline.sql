@@ -3671,8 +3671,12 @@ CREATE TABLE public.bookings (
     pay_later boolean DEFAULT false NOT NULL,
     series_id uuid,
     meeting_url text,
+    late_fee_status text,
+    waive_requested_at timestamp with time zone,
+    waive_request_reason text,
     CONSTRAINT bookings_charged_cents_check CHECK (((charged_cents IS NULL) OR (charged_cents > 0))),
     CONSTRAINT bookings_duration_minutes_check CHECK ((duration_minutes > 0)),
+    CONSTRAINT bookings_late_fee_status_check CHECK (((late_fee_status IS NULL) OR (late_fee_status = ANY (ARRAY['held'::text, 'waive_requested'::text, 'waived'::text, 'kept'::text])))),
     CONSTRAINT bookings_status_check CHECK ((status = ANY (ARRAY['booked'::text, 'completed'::text, 'cancelled'::text])))
 );
 
@@ -4335,3 +4339,398 @@ ALTER TABLE public.weekly_series ENABLE ROW LEVEL SECURITY;
 --
 
 
+
+
+-- =============================================================================
+-- Late-cancel waive inbox (folded from former migrations/50). Idempotent.
+-- Live DB that already applied archive 01–49: run ONLY this section once in
+-- the SQL Editor if these columns/functions are not present yet.
+-- =============================================================================
+
+-- ---------------------------------------------------------------------------
+-- Columns on bookings
+-- ---------------------------------------------------------------------------
+alter table public.bookings
+  add column if not exists late_fee_status text;
+
+alter table public.bookings
+  add column if not exists waive_requested_at timestamptz;
+
+alter table public.bookings
+  add column if not exists waive_request_reason text;
+
+alter table public.bookings
+  drop constraint if exists bookings_late_fee_status_check;
+
+alter table public.bookings
+  add constraint bookings_late_fee_status_check
+  check (
+    late_fee_status is null
+    or late_fee_status in ('held', 'waive_requested', 'waived', 'kept')
+  );
+
+comment on column public.bookings.late_fee_status is
+  'Late cancel fee: held | waive_requested | waived | kept. Null = no late fee.';
+
+-- Backfill open late fees so they appear in the admin exceptions inbox.
+update public.bookings
+set late_fee_status = 'held'
+where status = 'cancelled'
+  and charged_cents is not null
+  and charged_cents > 0
+  and late_fee_status is null;
+
+-- ---------------------------------------------------------------------------
+-- release_booking_credits: optional ledger description (waive vs normal refund)
+-- ---------------------------------------------------------------------------
+drop function if exists public.release_booking_credits(uuid);
+
+create function public.release_booking_credits(
+  p_booking_id uuid,
+  p_description text default 'Refunded for cancelled lesson'
+)
+returns integer
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_student_id uuid;
+  v_status text;
+  v_charged integer;
+  v_duration integer;
+  v_rate integer;
+  v_booking_created timestamptz;
+begin
+  select
+    b.student_id,
+    b.status,
+    b.charged_cents,
+    coalesce(b.duration_minutes, 50),
+    b.created_at
+  into v_student_id, v_status, v_charged, v_duration, v_booking_created
+  from public.bookings b
+  where b.id = p_booking_id
+  for update;
+
+  if v_student_id is null then
+    return 0;
+  end if;
+
+  if exists (
+    select 1
+    from public.credit_ledger cl
+    where cl.booking_id = p_booking_id
+      and cl.kind = 'cancel_refund'
+  ) then
+    return 0;
+  end if;
+
+  if v_charged is null or v_charged <= 0 then
+    if v_status <> 'booked' then
+      return 0;
+    end if;
+
+    select class_rate_cents into v_rate
+    from public.profiles
+    where id = v_student_id;
+
+    v_charged := public.lesson_charge_cents(v_rate, v_duration);
+
+    if not exists (
+      select 1
+      from public.credit_ledger cl
+      where cl.student_id = v_student_id
+        and cl.kind = 'book_hold'
+        and cl.amount_cents = -v_charged
+        and cl.created_at between v_booking_created - interval '2 minutes'
+                            and v_booking_created + interval '2 minutes'
+    ) then
+      return 0;
+    end if;
+  end if;
+
+  update public.profiles
+  set credit_balance_cents = credit_balance_cents + v_charged
+  where id = v_student_id;
+
+  update public.bookings
+  set charged_cents = null
+  where id = p_booking_id;
+
+  perform public.append_credit_ledger(
+    v_student_id,
+    v_charged,
+    'cancel_refund',
+    coalesce(nullif(trim(p_description), ''), 'Refunded for cancelled lesson'),
+    p_booking_id
+  );
+
+  return v_charged;
+end;
+$$;
+
+grant execute on function public.release_booking_credits(uuid, text) to authenticated;
+
+-- ---------------------------------------------------------------------------
+-- Student cancel: optional waive request on late cancel
+-- ---------------------------------------------------------------------------
+drop function if exists public.student_cancel_my_booking(uuid, text);
+
+create function public.student_cancel_my_booking(
+  p_booking_id uuid,
+  p_comment text default null,
+  p_request_waive boolean default false,
+  p_waive_reason text default null
+)
+returns void
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_slot_id uuid;
+  v_status text;
+  v_student_id uuid;
+  v_series_id uuid;
+  v_start timestamptz;
+  v_duration integer;
+  v_occupy_end timestamptz;
+  v_student_name text;
+  v_stopped boolean;
+  v_body text;
+  v_late boolean;
+  v_ask boolean;
+  v_reason text;
+begin
+  if auth.uid() is null then
+    raise exception 'Not signed in';
+  end if;
+
+  perform public.lock_booking_calendar();
+
+  select b.slot_id, b.status, b.student_id, b.series_id, s.start_time, coalesce(b.duration_minutes, 50)
+  into v_slot_id, v_status, v_student_id, v_series_id, v_start, v_duration
+  from public.bookings b
+  left join public.availability_slots s on s.id = b.slot_id
+  where b.id = p_booking_id
+  for update of b;
+
+  if not found then
+    raise exception 'Booking not found';
+  end if;
+
+  if v_student_id <> auth.uid() then
+    raise exception 'Not your class';
+  end if;
+
+  if v_status <> 'booked' then
+    raise exception 'Only active bookings can be cancelled';
+  end if;
+
+  if v_start is null then
+    raise exception 'Booking has no scheduled time';
+  end if;
+
+  if v_start < now() then
+    raise exception 'Past classes cannot be cancelled';
+  end if;
+
+  select full_name into v_student_name
+  from public.profiles
+  where id = v_student_id;
+
+  v_occupy_end := v_start + make_interval(
+    mins => public.lesson_occupied_minutes(v_duration)
+  );
+
+  v_late := public.is_late_student_cancel(v_start);
+  v_ask := coalesce(p_request_waive, false) and v_late;
+  v_reason := nullif(trim(coalesce(p_waive_reason, '')), '');
+
+  if v_ask and v_reason is null then
+    raise exception 'Add a short reason when asking to waive the late fee';
+  end if;
+
+  if not v_late then
+    perform public.release_booking_credits(p_booking_id);
+  end if;
+
+  update public.bookings
+  set
+    status = 'cancelled',
+    late_fee_status = case
+      when not v_late then late_fee_status
+      when v_ask then 'waive_requested'
+      else 'held'
+    end,
+    waive_requested_at = case when v_ask then now() else waive_requested_at end,
+    waive_request_reason = case when v_ask then v_reason else waive_request_reason end
+  where id = p_booking_id;
+
+  if v_slot_id is not null then
+    update public.availability_slots
+    set is_booked = false,
+        end_time = v_occupy_end
+    where id = v_slot_id;
+
+    perform public.restore_open_starts_in_range(v_start, v_occupy_end);
+  end if;
+
+  v_stopped := public.deactivate_series_if_no_future(v_series_id);
+
+  v_body := coalesce(v_student_name, 'A student')
+    || ' cancelled their class on '
+    || public.format_lesson_when(v_start);
+
+  if v_late then
+    v_body := v_body || ' (late cancel — within 12 hours, credits not refunded)';
+  end if;
+
+  v_body := v_body
+    || case when v_stopped then ' (weekly series stopped — no upcoming lessons left).' else '.' end;
+
+  if p_comment is not null and length(trim(p_comment)) > 0 then
+    v_body := v_body || E'\n\nNote from student: ' || trim(p_comment);
+  end if;
+
+  if v_ask then
+    v_body := v_body || E'\n\nWaive requested: ' || v_reason;
+  end if;
+
+  perform public.notify_admins(
+    case
+      when v_ask then 'Late cancel — waive requested'
+      when v_late then 'Late cancel by student'
+      else 'Class cancelled by student'
+    end,
+    v_body,
+    case when v_ask then 'late_cancel_waive_request' else 'student_cancelled' end
+  );
+end;
+$$;
+
+grant execute on function public.student_cancel_my_booking(uuid, text, boolean, text) to authenticated;
+
+-- ---------------------------------------------------------------------------
+-- Admin: waive late fee (refund + ledger line + notify student)
+-- ---------------------------------------------------------------------------
+create or replace function public.admin_waive_late_cancel(p_booking_id uuid)
+returns integer
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_status text;
+  v_student_id uuid;
+  v_refunded integer;
+begin
+  if not public.is_admin() then
+    raise exception 'Not authorized';
+  end if;
+
+  select status, student_id into v_status, v_student_id
+  from public.bookings
+  where id = p_booking_id
+  for update;
+
+  if v_status is null then
+    raise exception 'Booking not found';
+  end if;
+
+  if v_status <> 'cancelled' then
+    raise exception 'Only cancelled classes can be waived';
+  end if;
+
+  v_refunded := public.release_booking_credits(
+    p_booking_id,
+    'Late cancel fee waived'
+  );
+
+  update public.bookings
+  set late_fee_status = 'waived'
+  where id = p_booking_id;
+
+  if v_refunded > 0 and v_student_id is not null then
+    perform public.notify_user(
+      v_student_id,
+      'Late cancel fee waived',
+      'Aiden returned the credits for your late-cancelled class.',
+      'general'
+    );
+  end if;
+
+  return v_refunded;
+end;
+$$;
+
+grant execute on function public.admin_waive_late_cancel(uuid) to authenticated;
+
+-- ---------------------------------------------------------------------------
+-- Admin: keep the late fee (dismiss from exception inbox)
+-- ---------------------------------------------------------------------------
+create or replace function public.admin_keep_late_cancel_fee(p_booking_id uuid)
+returns void
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_status text;
+  v_charged integer;
+begin
+  if not public.is_admin() then
+    raise exception 'Not authorized';
+  end if;
+
+  select status, charged_cents into v_status, v_charged
+  from public.bookings
+  where id = p_booking_id
+  for update;
+
+  if v_status is null then
+    raise exception 'Booking not found';
+  end if;
+
+  if v_status <> 'cancelled' then
+    raise exception 'Only cancelled classes can be updated';
+  end if;
+
+  if v_charged is null or v_charged <= 0 then
+    raise exception 'No late fee left to keep on this class';
+  end if;
+
+  update public.bookings
+  set late_fee_status = 'kept'
+  where id = p_booking_id;
+end;
+$$;
+
+grant execute on function public.admin_keep_late_cancel_fee(uuid) to authenticated;
+
+-- Catch late fees from weekly-stop and any other cancel path that keeps charged_cents.
+create or replace function public.ensure_late_fee_status()
+returns trigger
+language plpgsql
+set search_path = public
+as $$
+begin
+  if new.status = 'cancelled'
+     and new.charged_cents is not null
+     and new.charged_cents > 0
+     and new.late_fee_status is null then
+    new.late_fee_status := 'held';
+  end if;
+  return new;
+end;
+$$;
+
+drop trigger if exists bookings_ensure_late_fee_status on public.bookings;
+create trigger bookings_ensure_late_fee_status
+before insert or update of status, charged_cents, late_fee_status
+on public.bookings
+for each row
+execute function public.ensure_late_fee_status();
+
+notify pgrst, 'reload schema';

@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { isoToZonedParts } from '../../tutoring/timezoneUtils'
 import {
   type BookedRange,
@@ -30,6 +31,7 @@ import { supabase } from '../../lib/supabase'
 import { formatBookingError } from '../../tutoring/bookingErrors'
 import { STUDENT_PAY_LATER_HINT } from '../../tutoring/studentCreditCopy'
 import { LATE_CANCEL_AGREEMENT } from '../../tutoring/lateCancelPolicy'
+import { getTutoringPortalRoot } from './tutoringPortal'
 
 type Props = {
   slot: AvailabilitySlot
@@ -354,16 +356,16 @@ export function StudentBookingModal({
   const isSuccess = confirmState === 'success'
   const isLoading = confirmState === 'loading'
 
-  return (
+  return createPortal(
     <>
       <button
         type="button"
         aria-label="Close booking"
-        className="fixed inset-0 z-40 bg-black/20"
+        className="tutoring-modal-backdrop fixed inset-0 z-40 bg-black/20"
         onClick={onClose}
       />
       <aside
-        className={`fixed inset-y-0 right-0 z-50 flex w-full max-w-md flex-col border-l border-line bg-white shadow-xl ${
+        className={`tutoring-drawer fixed inset-y-0 right-0 z-50 flex w-full max-w-md flex-col border-l border-line bg-white shadow-xl ${
           shake ? 'modal-shake' : ''
         }`}
       >
@@ -619,6 +621,7 @@ export function StudentBookingModal({
           </div>
         ) : null}
       </aside>
-    </>
+    </>,
+    getTutoringPortalRoot(),
   )
 }

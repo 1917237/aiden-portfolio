@@ -1,11 +1,19 @@
 import { useEffect, useState } from 'react'
+import { createPortal } from 'react-dom'
 import {
   LATE_CANCEL_AGREEMENT,
   LATE_CANCEL_HOURS,
   isLateCancel,
 } from '../../tutoring/lateCancelPolicy'
+import { getTutoringPortalRoot } from './tutoringPortal'
 
 type Variant = 'admin' | 'student'
+
+export type CancelConfirmPayload = {
+  comment: string | null
+  requestWaive: boolean
+  waiveReason: string | null
+}
 
 type Props = {
   open: boolean
@@ -13,7 +21,7 @@ type Props = {
   busy?: boolean
   lessonStartIso?: string | null
   onClose: () => void
-  onConfirm: (comment: string | null) => void
+  onConfirm: (payload: CancelConfirmPayload) => void
 }
 
 const COPY: Record<
@@ -47,6 +55,9 @@ export function CancelClassDialog({
   const [note, setNote] = useState('')
   const [policyAgreed, setPolicyAgreed] = useState(false)
   const [shakePolicy, setShakePolicy] = useState(false)
+  const [requestWaive, setRequestWaive] = useState(false)
+  const [waiveReason, setWaiveReason] = useState('')
+  const [shakeWaive, setShakeWaive] = useState(false)
   const copy = COPY[variant]
   const late = variant === 'student' && lessonStartIso ? isLateCancel(lessonStartIso) : false
 
@@ -55,6 +66,9 @@ export function CancelClassDialog({
     setNote('')
     setPolicyAgreed(false)
     setShakePolicy(false)
+    setRequestWaive(false)
+    setWaiveReason('')
+    setShakeWaive(false)
   }, [open])
 
   if (!open) return null
@@ -65,13 +79,23 @@ export function CancelClassDialog({
       window.setTimeout(() => setShakePolicy(false), 450)
       return
     }
+    if (late && requestWaive && !waiveReason.trim()) {
+      setShakeWaive(true)
+      window.setTimeout(() => setShakeWaive(false), 450)
+      return
+    }
     const trimmed = note.trim()
-    onConfirm(trimmed.length > 0 ? trimmed : null)
+    const reason = waiveReason.trim()
+    onConfirm({
+      comment: trimmed.length > 0 ? trimmed : null,
+      requestWaive: late && requestWaive,
+      waiveReason: late && requestWaive && reason.length > 0 ? reason : null,
+    })
   }
 
-  return (
+  return createPortal(
     <div
-      className="fixed inset-0 z-[60] flex items-end justify-center bg-black/40 p-4 sm:items-center"
+      className="tutoring-modal-backdrop fixed inset-0 z-[60] flex items-end justify-center bg-black/40 p-4 sm:items-center"
       role="presentation"
       onMouseDown={(event) => {
         if (event.target === event.currentTarget && !busy) onClose()
@@ -81,7 +105,7 @@ export function CancelClassDialog({
         role="dialog"
         aria-modal="true"
         aria-labelledby="cancel-class-title"
-        className="w-full max-w-md border border-line bg-white shadow-lg"
+        className="tutoring-modal-panel w-full max-w-md border border-line bg-white shadow-lg"
       >
         <div className="border-b border-line px-5 py-4">
           <h2 id="cancel-class-title" className="font-display text-2xl font-semibold">
@@ -90,7 +114,7 @@ export function CancelClassDialog({
           {late ? (
             <p className="mt-2 text-sm text-ink-muted">
               This class starts in under {LATE_CANCEL_HOURS} hours. If you cancel now, you will not
-              get those credits back.
+              get those credits back unless Aiden waives the fee.
             </p>
           ) : (
             <p className="mt-2 text-sm text-ink-muted">{copy.description}</p>
@@ -114,6 +138,38 @@ export function CancelClassDialog({
                 />
                 <span>{LATE_CANCEL_AGREEMENT}</span>
               </label>
+            </div>
+          ) : null}
+
+          {late ? (
+            <div
+              className={`border px-4 py-3 ${
+                shakeWaive ? 'confirm-btn-shake border-amber-400 bg-amber-50' : 'border-line bg-bg-elevated/40'
+              }`}
+            >
+              <label className="flex items-start gap-3 text-sm text-ink">
+                <input
+                  type="checkbox"
+                  checked={requestWaive}
+                  onChange={(event) => setRequestWaive(event.target.checked)}
+                  disabled={busy}
+                  className="mt-1"
+                />
+                <span>Ask Aiden to waive the late fee (optional)</span>
+              </label>
+              {requestWaive ? (
+                <label className="mt-3 block">
+                  <span className="text-sm font-semibold">Why should this be waived?</span>
+                  <textarea
+                    value={waiveReason}
+                    onChange={(event) => setWaiveReason(event.target.value)}
+                    rows={2}
+                    disabled={busy}
+                    placeholder="Short reason (required if asking)"
+                    className="mt-1 w-full resize-y border border-line bg-white px-3 py-2 text-sm disabled:opacity-60"
+                  />
+                </label>
+              ) : null}
             </div>
           ) : null}
 
@@ -149,6 +205,7 @@ export function CancelClassDialog({
           </div>
         </div>
       </div>
-    </div>
+    </div>,
+    getTutoringPortalRoot(),
   )
 }

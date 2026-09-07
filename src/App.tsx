@@ -14,19 +14,76 @@ import { TutoringStudentClasses } from './pages/tutoring/TutoringStudentClasses'
 import { TutoringNotifications } from './pages/tutoring/TutoringNotifications'
 import { TutoringLogin } from './pages/tutoring/TutoringLogin'
 import { TutoringResetPassword } from './pages/tutoring/TutoringResetPassword'
+import { TutoringShell } from './pages/tutoring/TutoringShell'
 
 export default function App() {
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="tutoring/classes" element={<TutoringStudentClasses />} />
-        <Route path="tutoring/notifications" element={<TutoringNotifications />} />
-        <Route path="tutoring/login" element={<TutoringLogin />} />
-        <Route path="tutoring/reset-password" element={<TutoringResetPassword />} />
-        <Route path="tutoring/dashboard" element={<TutoringDashboard />} />
-        <Route path="tutoring/calendar" element={<TutoringCalendar />} />
-        <Route path="tutoring/students" element={<TutoringStudents />} />
-        <Route path="tutoring/insights" element={<TutoringInsights />} />
+        <Route
+          path="tutoring/classes"
+          element={
+            <TutoringShell>
+              <TutoringStudentClasses />
+            </TutoringShell>
+          }
+        />
+        <Route
+          path="tutoring/notifications"
+          element={
+            <TutoringShell>
+              <TutoringNotifications />
+            </TutoringShell>
+          }
+        />
+        <Route
+          path="tutoring/login"
+          element={
+            <TutoringShell>
+              <TutoringLogin />
+            </TutoringShell>
+          }
+        />
+        <Route
+          path="tutoring/reset-password"
+          element={
+            <TutoringShell>
+              <TutoringResetPassword />
+            </TutoringShell>
+          }
+        />
+        <Route
+          path="tutoring/dashboard"
+          element={
+            <TutoringShell>
+              <TutoringDashboard />
+            </TutoringShell>
+          }
+        />
+        <Route
+          path="tutoring/calendar"
+          element={
+            <TutoringShell>
+              <TutoringCalendar />
+            </TutoringShell>
+          }
+        />
+        <Route
+          path="tutoring/students"
+          element={
+            <TutoringShell>
+              <TutoringStudents />
+            </TutoringShell>
+          }
+        />
+        <Route
+          path="tutoring/insights"
+          element={
+            <TutoringShell>
+              <TutoringInsights />
+            </TutoringShell>
+          }
+        />
         <Route path="tutoring" element={<Navigate to="/tutoring/login" replace />} />
 
         <Route element={<Layout />}>

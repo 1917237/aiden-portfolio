@@ -14,6 +14,11 @@ import {
   type WeekCellState,
 } from '../../tutoring/weekCalendarUtils'
 import { isoToZonedParts, type ZonedWeekDay } from '../../tutoring/timezoneUtils'
+import {
+  CalendarNowLine,
+  isNowWithinScheduleHours,
+  useNowInTimezone,
+} from './CalendarNowLine'
 
 export type SlotClickPayload = {
   dateKey: string
@@ -69,9 +74,13 @@ export function WeekCalendarGrid({
   onBookingClick,
 }: Props) {
   const gridHeight = WEEK_TIME_SLOTS.length * WEEK_ROW_HEIGHT_PX
+  const now = useNowInTimezone(timeZone)
+  const todayInWeek = weekDays.some((day) => day.isToday)
+  const showNowLine = todayInWeek && isNowWithinScheduleHours(now.startMinutes)
+  const nowTop = minutesToTopPx(now.startMinutes)
 
   return (
-    <div className="mt-4 overflow-auto border border-line" style={{ maxHeight: 'calc(100svh - 14rem)' }}>
+    <div className="mt-4 overflow-x-auto border border-line">
       <div className="min-w-[760px]">
         <div className="sticky top-0 z-20 flex border-b border-line bg-white">
           <div style={{ width: SCHEDULE_TIME_WIDTH }} className="shrink-0 bg-bg-elevated" />
@@ -101,7 +110,8 @@ export function WeekCalendarGrid({
             ))}
           </div>
 
-          <div className="flex flex-1">
+          <div className="relative flex flex-1">
+            <CalendarNowLine topPx={nowTop} visible={showNowLine} />
             {weekDays.map((day) => {
               const dayBookings = bookings.filter(
                 (b) => b.date_key === day.dateKey && b.status === 'booked',

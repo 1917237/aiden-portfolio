@@ -80,7 +80,7 @@ export function StudentCreditsPanel({
   const historyRefreshKey = refreshKey + requestsRefreshKey
 
   return (
-    <div className="mt-3 grid gap-4 border border-line bg-bg-elevated/60 p-6">
+    <div className="tutoring-panel mt-10 grid gap-4 p-6 md:p-7">
       <StudentCreditsSummary balanceCents={creditBalance} classRateCents={classRateCents} />
 
       <details className="text-sm">
@@ -99,7 +99,7 @@ export function StudentCreditsPanel({
               setError(null)
               setMessage(null)
             }}
-            className="border border-line bg-white px-4 py-2 text-sm font-semibold hover:bg-bg-elevated"
+            className="tutoring-btn"
           >
             Add credits
           </button>
@@ -139,14 +139,14 @@ export function StudentCreditsPanel({
               <button
                 type="submit"
                 disabled={submitting}
-                className="bg-sage-deep px-4 py-2 text-sm font-semibold text-white disabled:opacity-60"
+                className="tutoring-btn-primary px-4 py-2 text-sm disabled:opacity-60"
               >
                 {submitting ? 'Submitting…' : 'Submit request'}
               </button>
               <button
                 type="button"
                 onClick={() => setShowForm(false)}
-                className="border border-line px-4 py-2 text-sm font-semibold hover:bg-bg-elevated"
+                className="tutoring-btn"
               >
                 Cancel
               </button>

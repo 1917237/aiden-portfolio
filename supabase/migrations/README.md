@@ -1,9 +1,10 @@
 # Future migrations
 
-After `baseline/baseline.sql` exists, add **only new** changes here, numbered from `50` upward.
+`baseline/baseline.sql` is the one-file schema.
 
-Example: `50-add-something.sql`
+After you change the live DB, either:
 
-Run each file once in the Supabase SQL Editor on the live project, then commit it.
+1. Re-dump baseline with `../scripts/dump-supabase-baseline.sh`, or  
+2. Add a numbered file here (`50-…`), run it once on live, then fold it into baseline and delete the file.
 
-Do not put the old `01`–`49` files here — they live in `../archive/migrations-01-49/`.
+Do not put archived `01`–`49` here — they live in `../archive/migrations-01-49/`.
