@@ -1,6 +1,6 @@
-# Build on GitHub (more RAM than Vercel Hobby), then upload prebuilt output.
+# Build on GitHub (more RAM than Vercel Hobby), then upload static dist.
 # Secrets required: VERCEL_TOKEN, VERCEL_ORG_ID, VERCEL_PROJECT_ID
-# Optional (recommended): VITE_SUPABASE_URL, VITE_SUPABASE_ANON_KEY
+# Optional: VITE_SUPABASE_URL, VITE_SUPABASE_ANON_KEY
 
 name: Deploy to Vercel
 
@@ -16,6 +16,7 @@ concurrency:
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     env:
       VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
       VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
@@ -55,34 +56,21 @@ jobs:
           VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
           VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
 
-      - name: Package Build Output API
+      - name: Link project + deploy static dist
         run: |
-          mkdir -p .vercel/output/static
-          cp -R dist/. .vercel/output/static/
+          mkdir -p .vercel
           python3 - <<'PY'
-          import json
+          import json, os
           from pathlib import Path
-          Path(".vercel/output/config.json").write_text(
-              json.dumps(
-                  {
-                      "version": 3,
-                      "routes": [
-                          {"handle": "filesystem"},
-                          {"src": "/(.*)", "dest": "/index.html"},
-                      ],
-                  }
-              )
-          )
           Path(".vercel/project.json").write_text(
               json.dumps(
                   {
-                      "orgId": __import__("os").environ["VERCEL_ORG_ID"].strip(),
-                      "projectId": __import__("os").environ["VERCEL_PROJECT_ID"].strip(),
+                      "orgId": os.environ["VERCEL_ORG_ID"].strip(),
+                      "projectId": os.environ["VERCEL_PROJECT_ID"].strip(),
                   }
               )
           )
-          print("project.json:", Path(".vercel/project.json").read_text())
           PY
-
-      - name: Deploy prebuilt
-        run: vercel deploy --prebuilt --prod --yes --token="$VERCEL_TOKEN"
+          cp vercel.json dist/vercel.json
+          # Upload already-built files only — do not let Vercel run vite build remotely.
+          vercel deploy dist --prod --yes --token="$VERCEL_TOKEN" --meta gitSha="${GITHUB_SHA}"
