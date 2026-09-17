@@ -1,49 +1,40 @@
-import ReactMarkdown from 'react-markdown'
 import { Link, useParams } from 'react-router-dom'
 import { EmptyState } from '../components/EmptyState'
+import { GallerySlideshow } from '../components/GallerySlideshow'
 import { ModelViewerSlot } from '../components/ModelViewerSlot'
-import { Placeholder } from '../components/Placeholder'
 import { ProjectVideos } from '../components/ProjectVideos'
-import { getProjectBySlug, hasValue, siteContent } from '../lib/content'
+import { usePortfolio } from '../lib/PortfolioContext'
+import { projectSections, visibleGallery } from '../lib/portfolioStore'
 
-function Section({
-  title,
-  body,
-}: {
-  title: string
-  body?: string
-}) {
+function Section({ title, body }: { title: string; body: string }) {
   return (
     <section className="border-t border-line py-8">
-      <h2 className="font-display text-2xl font-semibold tracking-tight">{title}</h2>
-      {hasValue(body) ? (
-        <p className="mt-3 max-w-3xl text-lg leading-relaxed text-ink-muted whitespace-pre-wrap">
-          {body}
-        </p>
-      ) : (
-        <p className="mt-3 text-ink-muted italic">Add this section in projects.json.</p>
-      )}
+      <h2 className="font-display text-2xl font-bold tracking-tight">{title}</h2>
+      <p className="mt-3 max-w-3xl text-base leading-relaxed text-ink-muted whitespace-pre-wrap md:text-lg">
+        {body}
+      </p>
     </section>
   )
 }
 
 export function ProjectDetail() {
   const { slug } = useParams()
+  const { siteContent, getProjectBySlug, hasValue } = usePortfolio()
   const project = slug ? getProjectBySlug(slug) : undefined
-  const isCurrent = Boolean(
-    project && siteContent.home.currentProjectSlug === project.slug,
-  )
+  const isCurrent = Boolean(project && siteContent.home.currentProjectSlug === project.slug)
+  const sections = project ? projectSections(project) : []
+  const gallery = project ? visibleGallery(project) : []
 
   if (!project) {
     return (
-      <div className="mx-auto max-w-6xl px-5 py-14 md:px-8">
+      <div className="mx-auto max-w-7xl px-5 py-16 md:px-8">
         <EmptyState title="Project not found">
           <p>
-            No project with slug <code>{slug}</code>. Check <code>projects.json</code>.
+            No project with slug <code>{slug}</code>.
           </p>
           <p>
             <Link to="/projects" className="font-semibold text-sage-deep hover:underline">
-              Back to projects
+              ← All projects
             </Link>
           </p>
         </EmptyState>
@@ -52,86 +43,57 @@ export function ProjectDetail() {
   }
 
   return (
-    <div className="mx-auto max-w-6xl px-5 py-14 md:px-8 md:py-20">
-      <Link to="/projects" className="text-sm font-semibold text-sage-deep hover:underline">
+    <div className="mx-auto max-w-7xl px-5 py-16 md:px-8 md:py-24">
+      <Link
+        to="/projects"
+        className="text-sm font-semibold text-sage-deep transition-colors hover:text-ink"
+      >
         ← All projects
       </Link>
 
-      <div className="mt-6 max-w-3xl">
+      <div className="mt-8 max-w-3xl">
         <div className="flex flex-wrap items-center gap-3 text-sm text-ink-muted">
           {isCurrent || project.status === 'in-progress' ? (
-            <span className="border border-sage/40 bg-sage/10 px-2 py-0.5 text-sage-deep">
-              In progress
-            </span>
+            <span className="font-medium text-sage">In progress</span>
           ) : null}
           {project.year ? <span>{project.year}</span> : null}
           {project.tags?.length ? <span>{project.tags.join(' · ')}</span> : null}
         </div>
-        <h1 className="mt-3 font-display text-5xl font-semibold tracking-tight md:text-6xl">
+        <h1 className="mt-3 font-display text-4xl font-bold tracking-tight md:text-6xl">
           {project.title}
         </h1>
-        <p className="mt-4 text-xl leading-relaxed text-ink-muted">
-          {project.summary || 'Add a summary in projects.json.'}
+        <p className="mt-4 text-lg leading-relaxed text-ink-muted md:text-xl">
+          {project.summary || 'Add a summary in Portfolio admin.'}
         </p>
       </div>
 
-      <div className="mt-10">
-        {hasValue(project.coverImage) ? (
-          <img
-            src={project.coverImage}
-            alt={project.title}
-            className="max-h-[32rem] w-full object-cover"
-          />
+      {hasValue(project.model) ? (
+        <div className="mt-10">
+          <h2 className="mb-4 font-display text-2xl font-bold tracking-tight">3D model</h2>
+          <div className="border border-line">
+            <ModelViewerSlot src={project.model} alt={project.title} />
+          </div>
+        </div>
+      ) : null}
+
+      <div className="mt-4">
+        {sections.length > 0 ? (
+          sections.map((section) => (
+            <Section key={section.id} title={section.title} body={section.body} />
+          ))
         ) : (
-          <Placeholder
-            label="Hero / cover image"
-            hint={`public/media/projects/${project.slug}/cover.jpg`}
-            aspect="wide"
-          />
+          <p className="border-t border-line py-8 text-sm text-ink-muted italic">
+            Add write-up sections in Portfolio admin.
+          </p>
         )}
       </div>
 
-      <div className="mt-10">
-        <h2 className="mb-4 font-display text-2xl font-semibold tracking-tight">3D model</h2>
-        <ModelViewerSlot
-          src={hasValue(project.model) ? project.model : undefined}
-          alt={project.title}
-        />
-      </div>
-
-      <div className="mt-4">
-        <Section title="Why" body={project.why} />
-        <Section title="What it does" body={project.what} />
-        <Section title="My role" body={project.role} />
-        <Section title="How it works" body={project.how} />
-        <Section title="Challenges & decisions" body={project.challenges} />
-        <Section title="Outcome" body={project.outcome} />
-      </div>
-
-      {hasValue(project.bodyMarkdown) ? (
-        <section className="prose-portfolio border-t border-line py-8">
-          <h2 className="font-display text-2xl font-semibold tracking-tight">Notes</h2>
-          <div className="mt-4 max-w-3xl space-y-3 text-lg leading-relaxed text-ink-muted [&_a]:text-sage-deep [&_a]:underline [&_strong]:text-ink">
-            <ReactMarkdown>{project.bodyMarkdown}</ReactMarkdown>
-          </div>
+      {gallery.length > 0 ? (
+        <section className="border-t border-line py-8">
+          <h2 className="font-display text-2xl font-bold tracking-tight">Gallery</h2>
+          <GallerySlideshow images={gallery} altPrefix={project.title} />
         </section>
       ) : null}
-
-      <section className="border-t border-line py-8">
-        <h2 className="font-display text-2xl font-semibold tracking-tight">Project gallery</h2>
-        <div className="mt-6 grid gap-4 sm:grid-cols-2">
-          {project.gallery && project.gallery.length > 0 ? (
-            project.gallery.map((src) => (
-              <img key={src} src={src} alt="" className="w-full object-cover" />
-            ))
-          ) : (
-            <>
-              <Placeholder label="Photo 1" hint="Add paths to gallery[]" aspect="video" />
-              <Placeholder label="Photo 2" hint="CAD, prototype, demo stills" aspect="video" />
-            </>
-          )}
-        </div>
-      </section>
 
       <ProjectVideos videos={project.videos} projectSlug={project.slug} />
     </div>

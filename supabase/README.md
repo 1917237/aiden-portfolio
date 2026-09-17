@@ -19,6 +19,8 @@ If late-cancel waive columns are not on live yet, scroll to the bottom of `basel
 
 once in the SQL Editor (it is idempotent).
 
+**Portfolio CMS:** run `migrations/50-portfolio-cms.sql` once in the SQL Editor so the Portfolio admin tab can save site/projects/media. If Seed fails with `permission denied … 42501`, also run `migrations/51-portfolio-grants.sql`.
+
 ## New empty project / domain go-live DB
 
 1. Create a new Supabase project.

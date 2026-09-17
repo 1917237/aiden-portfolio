@@ -21,7 +21,7 @@ export function Placeholder({
   return (
     <div
       className={[
-        'flex flex-col items-center justify-center gap-2 border border-dashed border-line bg-bg-elevated/70 text-center text-ink-muted',
+        'flex flex-col items-center justify-center gap-2 border border-dashed border-line bg-sand/60 text-center text-ink-muted',
         aspectClass[aspect],
         className,
       ].join(' ')}

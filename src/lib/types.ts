@@ -15,6 +15,13 @@ export type ProjectVideo =
       title?: string
     }
 
+/** Editable write-up blocks on a project page (add/remove freely). */
+export type ProjectSection = {
+  id: string
+  title: string
+  body: string
+}
+
 export type SiteContent = {
   name: string
   tagline: string
@@ -52,9 +59,13 @@ export type Project = {
   year?: string
   tags?: string[]
   coverImage?: string
+  /** When true, coverImage is omitted from the public gallery even if it is also in gallery[]. */
+  hideCoverFromGallery?: boolean
   model?: string
   gallery?: string[]
   videos?: ProjectVideo[]
+  /** Preferred flexible sections. Legacy why/what/… still supported as fallback. */
+  sections?: ProjectSection[]
   why?: string
   what?: string
   role?: string

@@ -5,7 +5,7 @@ import { useStudentNotifications } from '../../tutoring/useStudentNotifications'
 import { TimezoneSelect } from './TimezoneSelect'
 
 type Props = {
-  current: 'dashboard' | 'calendar' | 'students' | 'insights' | 'notifications'
+  current: 'dashboard' | 'calendar' | 'students' | 'insights' | 'notifications' | 'portfolio'
 }
 
 export function AdminNav({ current }: Props) {
@@ -38,6 +38,9 @@ export function AdminNav({ current }: Props) {
       </Link>
       <Link to="/tutoring/insights" className={linkClass('insights')}>
         Insights
+      </Link>
+      <Link to="/tutoring/portfolio" className={linkClass('portfolio')}>
+        Portfolio
       </Link>
       <Link to="/tutoring/notifications" className={linkClass('notifications')}>
         Notifications

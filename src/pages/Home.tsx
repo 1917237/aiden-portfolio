@@ -1,102 +1,108 @@
 import { Link } from 'react-router-dom'
-import { CurrentProject } from '../components/CurrentProject'
-import { Placeholder } from '../components/Placeholder'
-import { Reveal } from '../components/Reveal'
-import { getCurrentProject, hasValue, siteContent } from '../lib/content'
+import { motion, useReducedMotion } from 'framer-motion'
+import { usePortfolio } from '../lib/PortfolioContext'
+import { ProjectThumb } from '../components/ProjectThumb'
+
+const letterAnimation = {
+  hidden: { opacity: 0, y: 16 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.4 } },
+}
+
+const nameContainer = {
+  hidden: {},
+  visible: {
+    transition: { staggerChildren: 0.035, delayChildren: 0.08 },
+  },
+}
 
 export function Home() {
-  const current = getCurrentProject()
+  const reduceMotion = useReducedMotion()
+  const { siteContent, getCurrentProject } = usePortfolio()
+  const featured = getCurrentProject()
+  const name = siteContent.name
 
   return (
-    <div>
-      <section className="relative overflow-hidden">
-        {hasValue(siteContent.home.heroImage) ? (
-          <img
-            src={siteContent.home.heroImage}
-            alt=""
-            className="absolute inset-0 h-full w-full object-cover"
-          />
-        ) : (
-          <div className="absolute inset-0 bg-[linear-gradient(135deg,#d7e0d6_0%,#c5d5df_48%,#e8ebe4_100%)]" />
-        )}
-        <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(28,36,28,0.18)_0%,rgba(28,36,28,0.45)_100%)]" />
-        <div className="relative mx-auto flex min-h-[78vh] max-w-6xl flex-col justify-end px-5 pb-16 pt-28 md:px-8 md:pb-20">
-          <Reveal immediate>
-            <p className="font-display text-5xl font-semibold tracking-tight text-white md:text-7xl">
-              {siteContent.name}
-            </p>
-            <h1 className="mt-4 max-w-2xl text-balance text-2xl font-medium text-white/95 md:text-3xl">
-              {siteContent.tagline}
-            </h1>
-            <p className="mt-4 max-w-xl text-lg leading-relaxed text-white/85">
-              {siteContent.home.supporting ||
-                'Add a short supporting line in src/content/site.json.'}
-            </p>
-            <div className="mt-8 flex flex-wrap gap-3">
-              <Link
-                to="/projects"
-                className="bg-bg-elevated px-5 py-3 text-sm font-semibold text-ink transition hover:bg-white"
+    <section className="relative min-h-[100svh] overflow-hidden">
+      <div className="relative mx-auto flex min-h-[100svh] max-w-3xl flex-col items-center justify-center px-5 py-24 text-center md:px-8">
+        <div className="w-full">
+          <motion.h1
+            className="flex flex-wrap justify-center font-display text-[clamp(3.5rem,11vw,6.5rem)] font-semibold leading-[0.98] tracking-tight text-ink"
+            variants={reduceMotion ? undefined : nameContainer}
+            initial={reduceMotion ? false : 'hidden'}
+            animate="visible"
+            aria-label={name}
+          >
+            {name.split('').map((char, index) => (
+              <motion.span
+                key={`${char}-${index}`}
+                variants={reduceMotion ? undefined : letterAnimation}
+                className={char === ' ' ? 'w-[0.28em]' : undefined}
               >
-                View projects
-              </Link>
+                {char === ' ' ? '\u00A0' : char}
+              </motion.span>
+            ))}
+          </motion.h1>
+
+          <motion.p
+            className="mt-5 text-xl tracking-tight text-sage-deep md:text-3xl"
+            initial={reduceMotion ? false : { opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.45, delay: reduceMotion ? 0 : 0.4 }}
+          >
+            {siteContent.tagline}
+          </motion.p>
+
+          <motion.p
+            className="mx-auto mt-4 max-w-md text-base leading-relaxed text-ink-muted md:text-lg"
+            initial={reduceMotion ? false : { opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.45, delay: reduceMotion ? 0 : 0.52 }}
+          >
+            {siteContent.home.supporting}
+          </motion.p>
+
+          <motion.div
+            className="mt-8 flex flex-wrap items-center justify-center gap-3"
+            initial={reduceMotion ? false : { opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.4, delay: reduceMotion ? 0 : 0.65 }}
+          >
+            <Link to="/projects" className="btn-primary">
+              Projects
+            </Link>
+            <Link to="/contact" className="btn-ghost">
+              Contact
+            </Link>
+          </motion.div>
+
+          {featured ? (
+            <motion.div
+              className="mx-auto mt-10 max-w-sm"
+              initial={reduceMotion ? false : { opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.4, delay: reduceMotion ? 0 : 0.78 }}
+            >
               <Link
-                to="/contact"
-                className="border border-white/70 px-5 py-3 text-sm font-semibold text-white transition hover:bg-white/10"
+                to={`/projects/${featured.slug}`}
+                className="group flex items-center gap-3 border-t border-line pt-5 text-left transition-colors hover:border-sage"
               >
-                Contact
+                <div className="media-zoom relative h-12 w-16 shrink-0 overflow-hidden border border-line">
+                  <ProjectThumb project={featured} alt="" className="absolute inset-0" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="label-mono text-[0.6rem]">Current</p>
+                  <p className="mt-0.5 truncate text-sm font-medium text-ink transition-colors group-hover:text-sage-deep">
+                    {featured.title}
+                  </p>
+                </div>
+                <span className="font-mono text-sm text-sage transition-transform group-hover:translate-x-0.5">
+                  →
+                </span>
               </Link>
-            </div>
-            {!hasValue(siteContent.home.heroImage) ? (
-              <p className="mt-8 text-sm text-white/70">
-                Hero image placeholder — set <code>home.heroImage</code> in{' '}
-                <code>site.json</code> (full-bleed photo works best).
-              </p>
-            ) : null}
-          </Reveal>
+            </motion.div>
+          ) : null}
         </div>
-      </section>
-
-      {current ? (
-        <Reveal>
-          <CurrentProject project={current} />
-        </Reveal>
-      ) : null}
-
-      <Reveal>
-        <section className="border-t border-line/70 bg-bg-elevated/40">
-          <div className="mx-auto grid max-w-6xl gap-8 px-5 py-16 md:grid-cols-2 md:items-start md:px-8 md:py-20">
-            <div>
-              <p className="text-sm font-medium tracking-wide text-sage uppercase">About</p>
-              <h2 className="mt-2 font-display text-4xl font-semibold tracking-tight">
-                {siteContent.name}
-              </h2>
-              <p className="mt-4 max-w-md text-lg leading-relaxed text-ink-muted">
-                {siteContent.about.body ||
-                  'About copy goes in site.json. Keep this homepage teaser short — the full story lives on the About page.'}
-              </p>
-              <Link
-                to="/about"
-                className="mt-6 inline-block text-sm font-semibold text-sage-deep hover:underline"
-              >
-                Read more
-              </Link>
-            </div>
-            {hasValue(siteContent.about.photo) ? (
-              <img
-                src={siteContent.about.photo}
-                alt={siteContent.name}
-                className="w-full object-cover"
-              />
-            ) : (
-              <Placeholder
-                label="Portrait / field photo"
-                hint="Set about.photo in site.json"
-                aspect="video"
-              />
-            )}
-          </div>
-        </section>
-      </Reveal>
-    </div>
+      </div>
+    </section>
   )
 }

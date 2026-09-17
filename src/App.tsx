@@ -14,6 +14,7 @@ import { TutoringStudentClasses } from './pages/tutoring/TutoringStudentClasses'
 import { TutoringNotifications } from './pages/tutoring/TutoringNotifications'
 import { TutoringLogin } from './pages/tutoring/TutoringLogin'
 import { TutoringResetPassword } from './pages/tutoring/TutoringResetPassword'
+import { TutoringPortfolioAdmin } from './pages/tutoring/TutoringPortfolioAdmin'
 import { TutoringShell } from './pages/tutoring/TutoringShell'
 
 export default function App() {
@@ -84,6 +85,14 @@ export default function App() {
             </TutoringShell>
           }
         />
+        <Route
+          path="tutoring/portfolio"
+          element={
+            <TutoringShell>
+              <TutoringPortfolioAdmin />
+            </TutoringShell>
+          }
+        />
         <Route path="tutoring" element={<Navigate to="/tutoring/login" replace />} />
 
         <Route element={<Layout />}>
@@ -93,6 +102,7 @@ export default function App() {
           <Route path="about" element={<About />} />
           <Route path="resume" element={<Resume />} />
           <Route path="contact" element={<Contact />} />
+          <Route path="contact/message" element={<Navigate to="/contact#message" replace />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Route>
       </Routes>
