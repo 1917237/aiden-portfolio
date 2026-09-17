@@ -84,26 +84,15 @@
     background: #050706;
   }
 
-  .ambient-bg__wash {
+  .ambient-bg__shader {
     position: absolute;
-    inset: -20%;
-    background:
-      radial-gradient(ellipse 55% 45% at 30% 35%, rgba(90, 143, 108, 0.22), transparent 60%),
-      radial-gradient(ellipse 50% 40% at 72% 60%, rgba(36, 56, 46, 0.55), transparent 65%),
-      radial-gradient(ellipse 40% 35% at 50% 80%, rgba(20, 28, 24, 0.8), transparent 70%);
+    inset: 0;
+    width: 100%;
+    height: 100%;
   }
 
-  .ambient-bg__wash--motion {
-    animation: ambient-drift 28s ease-in-out infinite alternate;
-  }
-
-  @keyframes ambient-drift {
-    from {
-      transform: translate3d(-2%, -1%, 0) scale(1);
-    }
-    to {
-      transform: translate3d(2%, 2%, 0) scale(1.06);
-    }
+  .ambient-bg__shader--soft {
+    opacity: 0.32;
   }
 
   .ambient-bg__veil {

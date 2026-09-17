@@ -1,8 +1,22 @@
 import { Link } from 'react-router-dom'
+import { motion, useReducedMotion } from 'framer-motion'
 import { usePortfolio } from '../lib/PortfolioContext'
 import { ProjectThumb } from '../components/ProjectThumb'
 
+const letterAnimation = {
+  hidden: { opacity: 0, y: 16 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.4 } },
+}
+
+const nameContainer = {
+  hidden: {},
+  visible: {
+    transition: { staggerChildren: 0.035, delayChildren: 0.08 },
+  },
+}
+
 export function Home() {
+  const reduceMotion = useReducedMotion()
   const { siteContent, getCurrentProject } = usePortfolio()
   const featured = getCurrentProject()
   const name = siteContent.name
@@ -11,36 +25,63 @@ export function Home() {
     <section className="relative min-h-[100svh] overflow-hidden">
       <div className="relative mx-auto flex min-h-[100svh] max-w-3xl flex-col items-center justify-center px-5 py-24 text-center md:px-8">
         <div className="w-full">
-          <h1
-            className="hero-enter flex flex-wrap justify-center font-display text-[clamp(3.5rem,11vw,6.5rem)] font-semibold leading-[0.98] tracking-tight text-ink"
+          <motion.h1
+            className="flex flex-wrap justify-center font-display text-[clamp(3.5rem,11vw,6.5rem)] font-semibold leading-[0.98] tracking-tight text-ink"
+            variants={reduceMotion ? undefined : nameContainer}
+            initial={reduceMotion ? false : 'hidden'}
+            animate="visible"
             aria-label={name}
           >
             {name.split('').map((char, index) => (
-              <span key={`${char}-${index}`} className={char === ' ' ? 'w-[0.28em]' : undefined}>
+              <motion.span
+                key={`${char}-${index}`}
+                variants={reduceMotion ? undefined : letterAnimation}
+                className={char === ' ' ? 'w-[0.28em]' : undefined}
+              >
                 {char === ' ' ? '\u00A0' : char}
-              </span>
+              </motion.span>
             ))}
-          </h1>
+          </motion.h1>
 
-          <p className="hero-enter hero-enter-delay-1 mt-5 text-xl tracking-tight text-sage-deep md:text-3xl">
+          <motion.p
+            className="mt-5 text-xl tracking-tight text-sage-deep md:text-3xl"
+            initial={reduceMotion ? false : { opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.45, delay: reduceMotion ? 0 : 0.4 }}
+          >
             {siteContent.tagline}
-          </p>
+          </motion.p>
 
-          <p className="hero-enter hero-enter-delay-2 mx-auto mt-4 max-w-md text-base leading-relaxed text-ink-muted md:text-lg">
+          <motion.p
+            className="mx-auto mt-4 max-w-md text-base leading-relaxed text-ink-muted md:text-lg"
+            initial={reduceMotion ? false : { opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.45, delay: reduceMotion ? 0 : 0.52 }}
+          >
             {siteContent.home.supporting}
-          </p>
+          </motion.p>
 
-          <div className="hero-enter hero-enter-delay-3 mt-8 flex flex-wrap items-center justify-center gap-3">
+          <motion.div
+            className="mt-8 flex flex-wrap items-center justify-center gap-3"
+            initial={reduceMotion ? false : { opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.4, delay: reduceMotion ? 0 : 0.65 }}
+          >
             <Link to="/projects" className="btn-primary">
               Projects
             </Link>
             <Link to="/contact" className="btn-ghost">
               Contact
             </Link>
-          </div>
+          </motion.div>
 
           {featured ? (
-            <div className="hero-enter hero-enter-delay-3 mx-auto mt-10 max-w-sm">
+            <motion.div
+              className="mx-auto mt-10 max-w-sm"
+              initial={reduceMotion ? false : { opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.4, delay: reduceMotion ? 0 : 0.78 }}
+            >
               <Link
                 to={`/projects/${featured.slug}`}
                 className="group flex items-center gap-3 border-t border-line pt-5 text-left transition-colors hover:border-sage"
@@ -58,7 +99,7 @@ export function Home() {
                   →
                 </span>
               </Link>
-            </div>
+            </motion.div>
           ) : null}
         </div>
       </div>

@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
+import { useReducedMotion } from 'framer-motion'
 
 type GallerySlideshowProps = {
   images: string[]
@@ -6,17 +7,9 @@ type GallerySlideshowProps = {
 }
 
 export function GallerySlideshow({ images, altPrefix = 'Gallery' }: GallerySlideshowProps) {
-  const [reduceMotion, setReduceMotion] = useState(false)
+  const reduceMotion = useReducedMotion()
   const [index, setIndex] = useState(0)
   const count = images.length
-
-  useEffect(() => {
-    const mq = window.matchMedia('(prefers-reduced-motion: reduce)')
-    const sync = () => setReduceMotion(mq.matches)
-    sync()
-    mq.addEventListener('change', sync)
-    return () => mq.removeEventListener('change', sync)
-  }, [])
 
   const go = useCallback(
     (next: number) => {

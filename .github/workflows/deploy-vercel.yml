@@ -1,0 +1,51 @@
+# Build on GitHub (more RAM than Vercel Hobby), then upload prebuilt output.
+# Keeps shaders / framer-motion / model-viewer without OOM on Vercel’s builder.
+#
+# One-time setup in the GitHub repo → Settings → Secrets and variables → Actions:
+#   VERCEL_TOKEN       — https://vercel.com/account/tokens
+#   VERCEL_ORG_ID      — from .vercel/project.json after `npx vercel link`
+#   VERCEL_PROJECT_ID  — from .vercel/project.json after `npx vercel link`
+#
+# In Vercel → Project → Settings → Git → Ignored Build Step:
+#   leave as “Automatic” is fine — vercel.json ignoreCommand skips the OOM build.
+
+name: Deploy to Vercel
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: vercel-production
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    env:
+      VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+      VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+      NODE_OPTIONS: --max-old-space-size=6144
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Vercel CLI
+        run: npm install --global vercel@latest
+
+      - name: Pull Vercel env
+        run: vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}
+
+      - name: Build (prebuilt output)
+        run: vercel build --prod --token=${{ secrets.VERCEL_TOKEN }}
+
+      - name: Deploy prebuilt
+        run: vercel deploy --prebuilt --prod --token=${{ secrets.VERCEL_TOKEN }}
