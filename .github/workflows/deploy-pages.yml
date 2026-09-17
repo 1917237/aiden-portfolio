@@ -21,7 +21,8 @@ jobs:
     timeout-minutes: 15
     env:
       NODE_OPTIONS: --max-old-space-size=6144
-      VITE_BASE: /aiden-portfolio/
+      # Custom domain serves at site root (not /aiden-portfolio/)
+      VITE_BASE: /
       # Public client keys (safe in the frontend bundle)
       VITE_SUPABASE_URL: https://dntujelwmbypgtxnhyin.supabase.co
       VITE_SUPABASE_ANON_KEY: sb_publishable_0VYGF3LcokP4GcNWdIMd5Q_cQHpogjm
