@@ -1,6 +1,6 @@
 import siteFallback from '../content/site.json'
 import projectsFallback from '../content/projects.json'
-import { supabase } from './supabase'
+import { isSupabaseConfigured, supabase } from './supabase'
 import type { Project, ProjectSection, SiteContent } from './types'
 
 export const fallbackSiteContent = siteFallback as SiteContent
@@ -121,6 +121,10 @@ export async function fetchPortfolioFromDb(): Promise<{
   site: SiteContent | null
   projects: Project[] | null
 }> {
+  if (!isSupabaseConfigured) {
+    return { site: null, projects: null }
+  }
+
   const [siteRes, projectsRes] = await Promise.all([
     supabase.from('portfolio_site').select('content').eq('id', 1).maybeSingle(),
     supabase.from('portfolio_projects').select('slug, sort_order, data').order('sort_order'),

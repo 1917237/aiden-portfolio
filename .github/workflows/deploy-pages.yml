@@ -22,8 +22,9 @@ jobs:
     env:
       NODE_OPTIONS: --max-old-space-size=6144
       VITE_BASE: /aiden-portfolio/
-      VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
-      VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
+      # Public client keys (safe in the frontend bundle)
+      VITE_SUPABASE_URL: https://dntujelwmbypgtxnhyin.supabase.co
+      VITE_SUPABASE_ANON_KEY: sb_publishable_0VYGF3LcokP4GcNWdIMd5Q_cQHpogjm
     steps:
       - uses: actions/checkout@v5
 
