@@ -8,6 +8,11 @@ export default defineConfig(({ mode }) => {
 
   return {
     plugins: [react(), tailwindcss()],
+    build: {
+      sourcemap: false,
+      reportCompressedSize: false,
+      target: 'es2022',
+    },
     test: {
       environment: 'node',
       include: ['src/**/*.test.ts'],

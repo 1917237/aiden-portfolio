@@ -1,3 +1,4 @@
+import { lazy, Suspense, type ReactNode } from 'react'
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
 import { Layout } from './components/Layout'
 import { About } from './pages/About'
@@ -6,16 +7,59 @@ import { Home } from './pages/Home'
 import { ProjectDetail } from './pages/ProjectDetail'
 import { Projects } from './pages/Projects'
 import { Resume } from './pages/Resume'
-import { TutoringCalendar } from './pages/tutoring/TutoringCalendar'
-import { TutoringDashboard } from './pages/tutoring/TutoringDashboard'
-import { TutoringInsights } from './pages/tutoring/TutoringInsights'
-import { TutoringStudents } from './pages/tutoring/TutoringStudents'
-import { TutoringStudentClasses } from './pages/tutoring/TutoringStudentClasses'
-import { TutoringNotifications } from './pages/tutoring/TutoringNotifications'
-import { TutoringLogin } from './pages/tutoring/TutoringLogin'
-import { TutoringResetPassword } from './pages/tutoring/TutoringResetPassword'
-import { TutoringPortfolioAdmin } from './pages/tutoring/TutoringPortfolioAdmin'
 import { TutoringShell } from './pages/tutoring/TutoringShell'
+
+const TutoringCalendar = lazy(() =>
+  import('./pages/tutoring/TutoringCalendar').then((m) => ({ default: m.TutoringCalendar })),
+)
+const TutoringDashboard = lazy(() =>
+  import('./pages/tutoring/TutoringDashboard').then((m) => ({ default: m.TutoringDashboard })),
+)
+const TutoringInsights = lazy(() =>
+  import('./pages/tutoring/TutoringInsights').then((m) => ({ default: m.TutoringInsights })),
+)
+const TutoringStudents = lazy(() =>
+  import('./pages/tutoring/TutoringStudents').then((m) => ({ default: m.TutoringStudents })),
+)
+const TutoringStudentClasses = lazy(() =>
+  import('./pages/tutoring/TutoringStudentClasses').then((m) => ({
+    default: m.TutoringStudentClasses,
+  })),
+)
+const TutoringNotifications = lazy(() =>
+  import('./pages/tutoring/TutoringNotifications').then((m) => ({
+    default: m.TutoringNotifications,
+  })),
+)
+const TutoringLogin = lazy(() =>
+  import('./pages/tutoring/TutoringLogin').then((m) => ({ default: m.TutoringLogin })),
+)
+const TutoringResetPassword = lazy(() =>
+  import('./pages/tutoring/TutoringResetPassword').then((m) => ({
+    default: m.TutoringResetPassword,
+  })),
+)
+const TutoringPortfolioAdmin = lazy(() =>
+  import('./pages/tutoring/TutoringPortfolioAdmin').then((m) => ({
+    default: m.TutoringPortfolioAdmin,
+  })),
+)
+
+function TutoringFallback() {
+  return (
+    <div className="flex min-h-[40vh] items-center justify-center text-sm text-ink-muted">
+      Loading…
+    </div>
+  )
+}
+
+function TutoringPage({ children }: { children: ReactNode }) {
+  return (
+    <TutoringShell>
+      <Suspense fallback={<TutoringFallback />}>{children}</Suspense>
+    </TutoringShell>
+  )
+}
 
 export default function App() {
   return (
@@ -24,73 +68,73 @@ export default function App() {
         <Route
           path="tutoring/classes"
           element={
-            <TutoringShell>
+            <TutoringPage>
               <TutoringStudentClasses />
-            </TutoringShell>
+            </TutoringPage>
           }
         />
         <Route
           path="tutoring/notifications"
           element={
-            <TutoringShell>
+            <TutoringPage>
               <TutoringNotifications />
-            </TutoringShell>
+            </TutoringPage>
           }
         />
         <Route
           path="tutoring/login"
           element={
-            <TutoringShell>
+            <TutoringPage>
               <TutoringLogin />
-            </TutoringShell>
+            </TutoringPage>
           }
         />
         <Route
           path="tutoring/reset-password"
           element={
-            <TutoringShell>
+            <TutoringPage>
               <TutoringResetPassword />
-            </TutoringShell>
+            </TutoringPage>
           }
         />
         <Route
           path="tutoring/dashboard"
           element={
-            <TutoringShell>
+            <TutoringPage>
               <TutoringDashboard />
-            </TutoringShell>
+            </TutoringPage>
           }
         />
         <Route
           path="tutoring/calendar"
           element={
-            <TutoringShell>
+            <TutoringPage>
               <TutoringCalendar />
-            </TutoringShell>
+            </TutoringPage>
           }
         />
         <Route
           path="tutoring/students"
           element={
-            <TutoringShell>
+            <TutoringPage>
               <TutoringStudents />
-            </TutoringShell>
+            </TutoringPage>
           }
         />
         <Route
           path="tutoring/insights"
           element={
-            <TutoringShell>
+            <TutoringPage>
               <TutoringInsights />
-            </TutoringShell>
+            </TutoringPage>
           }
         />
         <Route
           path="tutoring/portfolio"
           element={
-            <TutoringShell>
+            <TutoringPage>
               <TutoringPortfolioAdmin />
-            </TutoringShell>
+            </TutoringPage>
           }
         />
         <Route path="tutoring" element={<Navigate to="/tutoring/login" replace />} />
