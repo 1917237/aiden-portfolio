@@ -1,4 +1,4 @@
-# Build on GitHub (more RAM than Vercel Hobby), then upload prebuilt output.
+# Build on GitHub (more RAM than Vercel Hobby), then upload to Vercel.
 # Secrets: VERCEL_TOKEN, VERCEL_ORG_ID, VERCEL_PROJECT_ID
 
 name: Deploy to Vercel
@@ -28,6 +28,20 @@ jobs:
           node-version: 24
           cache: npm
 
+      - name: Verify secrets
+        run: |
+          missing=0
+          for key in VERCEL_TOKEN VERCEL_ORG_ID VERCEL_PROJECT_ID; do
+            val="${!key}"
+            if [ -z "$val" ]; then
+              echo "::error::$key is empty — check repo Actions secrets"
+              missing=1
+            else
+              echo "$key is set (len=${#val})"
+            fi
+          done
+          exit "$missing"
+
       - name: Install dependencies
         run: npm ci
 
@@ -37,15 +51,41 @@ jobs:
       - name: Link Vercel project
         run: |
           mkdir -p .vercel
-          cat > .vercel/project.json <<EOF
-          {"orgId":"${VERCEL_ORG_ID}","projectId":"${VERCEL_PROJECT_ID}"}
-          EOF
+          printf '%s\n' "{\"orgId\":\"${VERCEL_ORG_ID}\",\"projectId\":\"${VERCEL_PROJECT_ID}\"}" > .vercel/project.json
+          echo "Linked project.json:"
+          cat .vercel/project.json
 
       - name: Pull Vercel env
         run: vercel pull --yes --environment=production --token="$VERCEL_TOKEN"
 
-      - name: Build (prebuilt output)
-        run: vercel build --prod --token="$VERCEL_TOKEN"
+      - name: Build with Vite
+        run: |
+          # Prefer production env pulled from Vercel (Vite reads .env.production)
+          if [ -f .vercel/.env.production.local ]; then
+            cp .vercel/.env.production.local .env.production
+          fi
+          npm run build
+
+      - name: Package Build Output API
+        run: |
+          # Static Vite → Vercel Build Output API so --prebuilt works without `vercel build`
+          mkdir -p .vercel/output/static
+          cp -R dist/. .vercel/output/static/
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          Path(".vercel/output/config.json").write_text(
+              json.dumps(
+                  {
+                      "version": 3,
+                      "routes": [
+                          {"handle": "filesystem"},
+                          {"src": "/(.*)", "dest": "/index.html"},
+                      ],
+                  }
+              )
+          )
+          PY
 
       - name: Deploy prebuilt
         run: vercel deploy --prebuilt --prod --token="$VERCEL_TOKEN"
