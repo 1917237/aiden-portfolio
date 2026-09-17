@@ -1,4 +1,4 @@
-import { FormEvent, useState } from 'react'
+import { useState, type FormEvent } from 'react'
 import { Reveal } from '../components/Reveal'
 import { usePortfolio } from '../lib/PortfolioContext'
 
