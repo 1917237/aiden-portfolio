@@ -1,5 +1,5 @@
-# Build on GitHub (more RAM than Vercel Hobby), then upload static dist.
-# Secrets required: VERCEL_TOKEN, VERCEL_ORG_ID, VERCEL_PROJECT_ID
+# Build on GitHub, disable Vercel remote build, upload static dist.
+# Secrets: VERCEL_TOKEN, VERCEL_ORG_ID, VERCEL_PROJECT_ID
 # Optional: VITE_SUPABASE_URL, VITE_SUPABASE_ANON_KEY
 
 name: Deploy to Vercel
@@ -36,13 +36,76 @@ jobs:
           for key in VERCEL_TOKEN VERCEL_ORG_ID VERCEL_PROJECT_ID; do
             val="${!key}"
             if [ -z "$val" ]; then
-              echo "::error::$key is empty — check repo Actions secrets"
+              echo "::error::$key is empty"
               missing=1
             else
               echo "$key is set (len=${#val})"
             fi
           done
           exit "$missing"
+
+      - name: Disable Vercel remote build + cancel stuck deploys
+        run: |
+          python3 <<'PY'
+          import json, os, urllib.request
+
+          token = os.environ["VERCEL_TOKEN"].strip()
+          org = os.environ["VERCEL_ORG_ID"].strip()
+          project = os.environ["VERCEL_PROJECT_ID"].strip()
+
+          def req(url, method="GET", body=None):
+              data = None if body is None else json.dumps(body).encode()
+              r = urllib.request.Request(
+                  url,
+                  data=data,
+                  method=method,
+                  headers={
+                      "Authorization": f"Bearer {token}",
+                      "Content-Type": "application/json",
+                  },
+              )
+              with urllib.request.urlopen(r) as resp:
+                  return json.loads(resp.read().decode() or "{}")
+
+          patched = req(
+              f"https://api.vercel.com/v9/projects/{project}?teamId={org}",
+              method="PATCH",
+              body={
+                  "framework": None,
+                  "buildCommand": "",
+                  "installCommand": "",
+                  "outputDirectory": "",
+                  "commandForIgnoringBuildStep": "exit 0",
+              },
+          )
+          print(
+              "project settings:",
+              {
+                  "framework": patched.get("framework"),
+                  "buildCommand": patched.get("buildCommand"),
+                  "installCommand": patched.get("installCommand"),
+                  "ignore": patched.get("commandForIgnoringBuildStep"),
+              },
+          )
+
+          deps = req(
+              f"https://api.vercel.com/v6/deployments?projectId={project}&teamId={org}&limit=10"
+          ).get("deployments", [])
+          for d in deps:
+              state = d.get("readyState") or d.get("state")
+              uid = d["uid"]
+              print(f"{uid} {state}")
+              if state in ("BUILDING", "QUEUED", "INITIALIZING", "ANALYZING"):
+                  try:
+                      req(
+                          f"https://api.vercel.com/v12/deployments/{uid}/cancel?teamId={org}",
+                          method="PATCH",
+                          body={},
+                      )
+                      print("cancelled", uid)
+                  except Exception as e:
+                      print("cancel failed", uid, e)
+          PY
 
       - name: Install dependencies
         run: npm ci
@@ -56,21 +119,9 @@ jobs:
           VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
           VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
 
-      - name: Link project + deploy static dist
+      - name: Deploy static dist
         run: |
           mkdir -p .vercel
-          python3 - <<'PY'
-          import json, os
-          from pathlib import Path
-          Path(".vercel/project.json").write_text(
-              json.dumps(
-                  {
-                      "orgId": os.environ["VERCEL_ORG_ID"].strip(),
-                      "projectId": os.environ["VERCEL_PROJECT_ID"].strip(),
-                  }
-              )
-          )
-          PY
+          printf '%s\n' "{\"orgId\":\"${VERCEL_ORG_ID}\",\"projectId\":\"${VERCEL_PROJECT_ID}\"}" > .vercel/project.json
           cp vercel.json dist/vercel.json
-          # Upload already-built files only — do not let Vercel run vite build remotely.
-          vercel deploy dist --prod --yes --token="$VERCEL_TOKEN" --meta gitSha="${GITHUB_SHA}"
+          vercel deploy dist --prod --yes --token="$VERCEL_TOKEN"
