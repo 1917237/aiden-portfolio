@@ -1,5 +1,6 @@
-# Build on GitHub (more RAM than Vercel Hobby), then upload to Vercel.
-# Secrets: VERCEL_TOKEN, VERCEL_ORG_ID, VERCEL_PROJECT_ID
+# Build on GitHub (more RAM than Vercel Hobby), then upload prebuilt output.
+# Secrets required: VERCEL_TOKEN, VERCEL_ORG_ID, VERCEL_PROJECT_ID
+# Optional (recommended): VITE_SUPABASE_URL, VITE_SUPABASE_ANON_KEY
 
 name: Deploy to Vercel
 
@@ -48,27 +49,14 @@ jobs:
       - name: Install Vercel CLI
         run: npm install --global vercel@latest
 
-      - name: Link Vercel project
-        run: |
-          mkdir -p .vercel
-          printf '%s\n' "{\"orgId\":\"${VERCEL_ORG_ID}\",\"projectId\":\"${VERCEL_PROJECT_ID}\"}" > .vercel/project.json
-          echo "Linked project.json:"
-          cat .vercel/project.json
-
-      - name: Pull Vercel env
-        run: vercel pull --yes --environment=production --token="$VERCEL_TOKEN"
-
       - name: Build with Vite
-        run: |
-          # Prefer production env pulled from Vercel (Vite reads .env.production)
-          if [ -f .vercel/.env.production.local ]; then
-            cp .vercel/.env.production.local .env.production
-          fi
-          npm run build
+        run: npm run build
+        env:
+          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+          VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
 
       - name: Package Build Output API
         run: |
-          # Static Vite → Vercel Build Output API so --prebuilt works without `vercel build`
           mkdir -p .vercel/output/static
           cp -R dist/. .vercel/output/static/
           python3 - <<'PY'
@@ -85,7 +73,16 @@ jobs:
                   }
               )
           )
+          Path(".vercel/project.json").write_text(
+              json.dumps(
+                  {
+                      "orgId": __import__("os").environ["VERCEL_ORG_ID"].strip(),
+                      "projectId": __import__("os").environ["VERCEL_PROJECT_ID"].strip(),
+                  }
+              )
+          )
+          print("project.json:", Path(".vercel/project.json").read_text())
           PY
 
       - name: Deploy prebuilt
-        run: vercel deploy --prebuilt --prod --token="$VERCEL_TOKEN"
+        run: vercel deploy --prebuilt --prod --yes --token="$VERCEL_TOKEN"
