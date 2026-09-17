@@ -7,6 +7,7 @@ export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '')
 
   return {
+    base: process.env.VITE_BASE || '/',
     plugins: [react(), tailwindcss()],
     build: {
       sourcemap: false,
