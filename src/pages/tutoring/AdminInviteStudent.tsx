@@ -1,8 +1,31 @@
 import { type FormEvent, useState } from 'react'
+import { FunctionsHttpError } from '@supabase/supabase-js'
 import { supabase } from '../../lib/supabase'
 
 type Props = {
   onInvited: () => void
+}
+
+async function readFunctionError(fnError: unknown): Promise<string> {
+  if (fnError instanceof FunctionsHttpError) {
+    try {
+      const body = await fnError.context.json()
+      if (body && typeof body === 'object' && 'error' in body) {
+        return String((body as { error: unknown }).error)
+      }
+      return typeof body === 'string' ? body : JSON.stringify(body)
+    } catch {
+      try {
+        return await fnError.context.text()
+      } catch {
+        /* fall through */
+      }
+    }
+  }
+  if (fnError && typeof fnError === 'object' && 'message' in fnError) {
+    return String((fnError as { message: string }).message)
+  }
+  return 'Invite failed'
 }
 
 export function AdminInviteStudent({ onInvited }: Props) {
@@ -33,12 +56,10 @@ export function AdminInviteStudent({ onInvited }: Props) {
     setSubmitting(false)
 
     if (fnError) {
-      const raw = fnError.message || ''
+      const raw = await readFunctionError(fnError)
       setError(
-        /Failed to send a request to the Edge Function|Failed to fetch|invite-student|NOT_FOUND|404/i.test(
-          raw,
-        )
-          ? 'Invite function is not deployed yet. In Terminal run: npx supabase login && npx supabase functions deploy invite-student --project-ref dntujelwmbypgtxnhyin'
+        /Failed to send a request to the Edge Function|Failed to fetch|NOT_FOUND|404/i.test(raw)
+          ? 'Invite function is not deployed yet. In Terminal run: npx supabase functions deploy invite-student --project-ref dntujelwmbypgtxnhyin'
           : raw,
       )
       return
@@ -49,7 +70,12 @@ export function AdminInviteStudent({ onInvited }: Props) {
       return
     }
 
-    setMessage(`Invite sent to ${trimmedEmail}. They can set a password from the email link.`)
+    const resent = Boolean(data && typeof data === 'object' && 'resent' in data && data.resent)
+    setMessage(
+      resent
+        ? `Account already existed — sent a new password setup email to ${trimmedEmail}.`
+        : `Invite sent to ${trimmedEmail}. They can set a password from the email link.`,
+    )
     setEmail('')
     setFullName('')
     onInvited()
