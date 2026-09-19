@@ -146,7 +146,7 @@ export function WeeklyScheduler({ onSaved, onError, onMessage }: Props) {
   return (
     <CollapsibleSection
       title="Weekly availability"
-      description={`8 AM – 12 AM · 15-min blocks · generates open slots for ${WEEKS_AHEAD} weeks. Times use the timezone in the nav bar.`}
+      description={`8 AM to 12 AM · 15-min blocks · generates open slots for ${WEEKS_AHEAD} weeks. Times use the timezone in the nav bar.`}
       fullHeight
     >
       {loading && !hasLoaded ? (

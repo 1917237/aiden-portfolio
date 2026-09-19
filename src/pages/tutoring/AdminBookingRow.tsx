@@ -176,7 +176,7 @@ export async function completeBookingForAdmin(
   const newBalance = balanceCents - charge
   if (newBalance < 0) {
     return {
-      message: `Class confirmed. ${formatCredits(charge)} deducted — ${booking.profiles.full_name} now owes ${formatSignedCredits(Math.abs(newBalance))}.`,
+      message: `Class confirmed. ${formatCredits(charge)} deducted. ${booking.profiles.full_name} now owes ${formatSignedCredits(Math.abs(newBalance))}.`,
     }
   }
 

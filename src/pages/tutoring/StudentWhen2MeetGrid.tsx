@@ -145,7 +145,7 @@ export function StudentWhen2MeetGrid({
       <div className="flex flex-wrap items-center gap-4 border-t border-line bg-bg-elevated/40 px-3 py-2 text-xs text-ink-muted">
         <span className="inline-flex items-center gap-1.5">
           <span className="inline-block h-3 w-3 bg-sage" />{' '}
-          {mode === 'reschedule' ? 'Available — click to pick' : 'Available — click to book'}
+          {mode === 'reschedule' ? 'Available. Click to pick' : 'Available. Click to book'}
         </span>
         <span className="inline-flex items-center gap-1.5">
           <span className="inline-block h-3 w-3 bg-amber-100 ring-1 ring-amber-300" /> Taken
@@ -154,7 +154,7 @@ export function StudentWhen2MeetGrid({
           <span className="inline-block h-3 w-3 bg-[#f3f5f2] ring-1 ring-[#c5cdc0]" /> Unavailable
         </span>
         <span className="text-ink-muted/80">
-          {formatTimeLabel(startHour * 60)} – {endLabel}
+          {formatTimeLabel(startHour * 60)} to {endLabel}
           {timeZone ? ` · ${formatTimezoneLabel(timeZone)}` : ''}
         </span>
       </div>

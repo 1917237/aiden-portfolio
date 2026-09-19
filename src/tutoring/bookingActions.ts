@@ -50,7 +50,7 @@ export async function cancelBooking(bookingId: string, comment?: string | null) 
     }
     throw error
   }
-  // Refresh slots in the background — awaiting this blocked the schedule modal on cancel.
+  // Refresh slots in the background. awaiting this blocked the schedule modal on cancel.
   void regenerateBookableSlots().catch(() => {})
 }
 

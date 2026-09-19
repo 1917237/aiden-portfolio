@@ -119,7 +119,7 @@ describeIntegration('booking flow (Supabase)', () => {
   it('cancels with a tutor note and refunds credits', async () => {
     expect(bookingId).toBeTruthy()
 
-    const note = 'Integration test — sorry, rescheduling soon.'
+    const note = 'Integration test. sorry, rescheduling soon.'
     const { client: admin } = await signInAs(env, env.adminEmail, env.adminPassword)
 
     const { error: cancelError } = await admin.rpc('cancel_booking', {

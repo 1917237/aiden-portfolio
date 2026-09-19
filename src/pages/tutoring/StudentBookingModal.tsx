@@ -204,7 +204,7 @@ export function StudentBookingModal({
       return
     }
 
-    // Partial weeks are a warning, not a hard block — user can schedule anyway
+    // Partial weeks are a warning, not a hard block. user can schedule anyway
     setDurationError(null)
   }, [
     bookedRanges,
@@ -542,7 +542,7 @@ export function StudentBookingModal({
                   <p className="font-semibold">You don&apos;t have enough credits</p>
                   <p className="mt-1">
                     You need {formatLessonCredits(totalLessonCredits)} but only have{' '}
-                    {formatLessonCredits(balanceCredits)}. You can still book — credits are
+                    {formatLessonCredits(balanceCredits)}. You can still book. credits are
                     reserved now and your balance may go negative until you add payment.
                   </p>
                 </div>

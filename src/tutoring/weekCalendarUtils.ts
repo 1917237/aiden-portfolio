@@ -50,9 +50,9 @@ export function formatWeekRange(weekStart: Date) {
   const opts: Intl.DateTimeFormatOptions = { month: 'short', day: 'numeric' }
   const yearOpts: Intl.DateTimeFormatOptions = { ...opts, year: 'numeric' }
   if (weekStart.getMonth() === end.getMonth()) {
-    return `${weekStart.toLocaleDateString(undefined, opts)} – ${end.getDate()}, ${end.getFullYear()}`
+    return `${weekStart.toLocaleDateString(undefined, opts)} to ${end.getDate()}, ${end.getFullYear()}`
   }
-  return `${weekStart.toLocaleDateString(undefined, yearOpts)} – ${end.toLocaleDateString(undefined, yearOpts)}`
+  return `${weekStart.toLocaleDateString(undefined, yearOpts)} to ${end.toLocaleDateString(undefined, yearOpts)}`
 }
 
 export const WEEK_TIME_SLOTS = Array.from(

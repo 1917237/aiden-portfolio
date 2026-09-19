@@ -11,7 +11,7 @@
   },
   "about": {
     "headline": "About",
-    "body": "I'm a Robotics Engineering student at UC Santa Cruz (class of ’28). I like closing the loop between software and hardware — vision systems that drive motors, mechanisms that survive outdoors, and embedded UIs that have to work on a real car, not just a desk.\n\nLately that looks like a pan-tilt tracking turret, a fog-collector door mechanism, and a DIY OBD turbo gauge for my Integra. Outside of builds I tutor, and I'm an Eagle Scout.",
+    "body": "I'm a Robotics Engineering student at UC Santa Cruz (class of ’28). I like closing the loop between software and hardware: vision systems that drive motors, mechanisms that survive outdoors, and embedded UIs that have to work on a real car, not just a desk.\n\nLately that looks like a pan-tilt tracking turret, a fog-collector door mechanism, and a DIY OBD turbo gauge for my Integra. Outside of builds I tutor, and I'm an Eagle Scout.",
     "photo": "",
     "skills": {
       "languages": ["Python", "C++", "C", "TypeScript", "SQL"],
@@ -21,7 +21,7 @@
     "interests": ["Hiking", "Surfing", "Martial arts", "Cars & DIY electronics", "Tutoring"]
   },
   "home": {
-    "supporting": "Robots and mechanisms — designed, built, and tuned until they work.",
+    "supporting": "Robots and mechanisms, designed, built, and tuned until they work.",
     "heroImage": "",
     "currentProjectSlug": "fog-collector-door-mechanism"
   }

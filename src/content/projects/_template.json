@@ -24,7 +24,7 @@
   ],
   "why": "Why I made this project.",
   "what": "What it does, in plain language.",
-  "how": "How it works — architecture, sensors, stack.",
+  "how": "How it works. architecture, sensors, stack.",
   "challenges": "Challenges, tradeoffs, and decisions.",
   "outcome": "Results, demos, what you would improve next.",
   "bodyMarkdown": "Optional longer write-up in **Markdown**."

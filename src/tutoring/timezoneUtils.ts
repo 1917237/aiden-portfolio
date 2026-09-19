@@ -178,10 +178,10 @@ export function formatWeekRangeFromKeys(weekStartKey: string, _timeZone?: string
     const startLabel = start.toLocaleDateString('en-US', { ...opts, timeZone: 'UTC' })
     const endDay = end.getUTCDate()
     const year = end.getUTCFullYear()
-    return `${startLabel} – ${endDay}, ${year}`
+    return `${startLabel} to ${endDay}, ${year}`
   }
 
-  return `${start.toLocaleDateString('en-US', { ...yearOpts, timeZone: 'UTC' })} – ${end.toLocaleDateString('en-US', { ...yearOpts, timeZone: 'UTC' })}`
+  return `${start.toLocaleDateString('en-US', { ...yearOpts, timeZone: 'UTC' })} to ${end.toLocaleDateString('en-US', { ...yearOpts, timeZone: 'UTC' })}`
 }
 
 export type ZonedWeekDay = {

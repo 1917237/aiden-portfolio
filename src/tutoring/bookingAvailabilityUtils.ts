@@ -48,7 +48,7 @@ export function unwrapSlotRelation<T extends { start_time?: string; end_time?: s
   return (Array.isArray(raw) ? raw[0] : raw) ?? null
 }
 
-/** All booked occupy windows (shared across students — no names). */
+/** All booked occupy windows (shared across students. no names). */
 export async function loadOccupiedBookingRanges(): Promise<BookedRange[]> {
   const { data, error } = await supabase.rpc('list_occupied_booking_ranges')
   if (error) {
@@ -155,7 +155,7 @@ function conflictsWithBooked(
 
 /**
  * Minutes free from this start until the next booking or a gap in open 15-min slots.
- * Absolute timestamps — same answer in every student timezone.
+ * Absolute timestamps. same answer in every student timezone.
  */
 export function minutesOpenFromStart(
   slotStartIso: string,
@@ -245,7 +245,7 @@ export function getDurationOptionStates(
       return {
         minutes,
         ok: false,
-        reason: `Only ${openMinutes} minutes free until the next class — not enough for a ${formatDurationLabel(minutes)} lesson.`,
+        reason: `Only ${openMinutes} minutes free until the next class. not enough for a ${formatDurationLabel(minutes)} lesson.`,
       }
     }
     return { minutes, ok: true }
@@ -278,7 +278,7 @@ export function validateLessonDuration(
     if (occupyMinutes > openMinutes) {
       return {
         ok: false,
-        reason: `Only ${openMinutes} minutes free until the next class — not enough for a ${durationMinutes}-minute lesson.`,
+        reason: `Only ${openMinutes} minutes free until the next class. not enough for a ${durationMinutes}-minute lesson.`,
       }
     }
     return { ok: true }

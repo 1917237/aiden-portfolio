@@ -116,7 +116,7 @@ export function AdminLateCancelExceptions({ refreshKey = 0, onChanged }: Props) 
       return
     }
 
-    setMessage('Late fee waived — credits refunded.')
+    setMessage('Late fee waived. credits refunded.')
     await load()
     onChanged?.()
   }
@@ -142,7 +142,7 @@ export function AdminLateCancelExceptions({ refreshKey = 0, onChanged }: Props) 
       return
     }
 
-    setMessage('Late fee kept — removed from inbox.')
+    setMessage('Late fee kept. removed from inbox.')
     await load()
     onChanged?.()
   }

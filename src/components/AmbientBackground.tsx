@@ -2,7 +2,7 @@ import { MeshGradient } from '@paper-design/shaders-react'
 import { useEffect, useState } from 'react'
 
 /**
- * Paper MeshGradient ambient field — same idea as the shader-hero demo,
+ * Paper MeshGradient ambient field. same idea as the shader-hero demo,
  * tuned to the forest-dark portfolio palette (not B&W SaaS chrome).
  */
 export function AmbientBackground() {

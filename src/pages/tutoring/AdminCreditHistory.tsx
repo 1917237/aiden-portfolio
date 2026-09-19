@@ -85,7 +85,7 @@ export function AdminCreditHistory({ studentId, classRateCents, refreshKey = 0 }
     <div>
       {rows.length > HISTORY_VISIBLE_ROWS ? (
         <p className="mb-2 text-xs text-ink-muted">
-          Showing latest {rows.length} entries — scroll for more.
+          Showing latest {rows.length} entries. scroll for more.
         </p>
       ) : null}
       <div

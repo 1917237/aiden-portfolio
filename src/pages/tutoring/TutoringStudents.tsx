@@ -29,7 +29,7 @@ type StudentStats = {
 type DetailTab = 'lessons' | 'overview'
 
 function formatNextLesson(iso: string | null, timeZone: string) {
-  if (!iso) return '—'
+  if (!iso) return 'None'
   return new Date(iso).toLocaleDateString(undefined, {
     timeZone,
     month: 'short',

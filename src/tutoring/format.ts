@@ -33,7 +33,7 @@ export function formatSlotRange(start: string, end: string, timeZone?: string) {
     hour: 'numeric',
     minute: '2-digit',
   })
-  return `${date} · ${startTime} – ${endTime}`
+  return `${date} · ${startTime} to ${endTime}`
 }
 
 export function toDatetimeLocalValue(date: Date) {

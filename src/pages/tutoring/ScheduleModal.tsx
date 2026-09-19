@@ -499,7 +499,7 @@ export function ScheduleModal({
             <div className="border border-sky-200 bg-sky-50 p-3">
               <p className="text-sm font-semibold text-sky-900">
                 Extra availability{' '}
-                {formatTimeLabel(activeExtra.startMinutes)} – {formatTimeLabel(activeExtra.endMinutes)}
+                {formatTimeLabel(activeExtra.startMinutes)} to {formatTimeLabel(activeExtra.endMinutes)}
               </p>
               <button
                 type="button"
@@ -517,7 +517,7 @@ export function ScheduleModal({
               <p className="text-sm font-semibold text-red-900">
                 {activeBlock.kind === 'whole-day'
                   ? 'All day is blocked'
-                  : `Blocked ${formatTimeLabel(activeBlock.startMinutes)} – ${formatTimeLabel(activeBlock.endMinutes)}`}
+                  : `Blocked ${formatTimeLabel(activeBlock.startMinutes)} to ${formatTimeLabel(activeBlock.endMinutes)}`}
               </p>
               <button
                 type="button"
@@ -702,7 +702,7 @@ export function ScheduleModal({
                   <p className="text-sm font-semibold text-red-900">
                     {activeBlock.kind === 'whole-day'
                       ? 'All day is blocked'
-                      : `Blocked ${formatTimeLabel(activeBlock.startMinutes)} – ${formatTimeLabel(activeBlock.endMinutes)}`}
+                      : `Blocked ${formatTimeLabel(activeBlock.startMinutes)} to ${formatTimeLabel(activeBlock.endMinutes)}`}
                   </p>
                   <button
                     type="button"
@@ -783,7 +783,7 @@ export function ScheduleModal({
                 <div className="border border-sky-200 bg-sky-50 p-3">
                   <p className="text-sm font-semibold text-sky-900">
                     Extra availability{' '}
-                    {formatTimeLabel(activeExtra.startMinutes)} – {formatTimeLabel(activeExtra.endMinutes)}
+                    {formatTimeLabel(activeExtra.startMinutes)} to {formatTimeLabel(activeExtra.endMinutes)}
                   </p>
                   <button
                     type="button"

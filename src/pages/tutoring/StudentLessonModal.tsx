@@ -310,7 +310,7 @@ export function StudentLessonModal({
       finishSuccess(
         late
           ? payload.requestWaive
-            ? 'Class cancelled. Credits not returned yet — Aiden will review your waive request.'
+            ? 'Class cancelled. Credits not returned yet. Aiden will review your waive request.'
             : 'Class cancelled. Credits were not returned (inside 12 hours of class).'
           : 'Class cancelled. Credits returned to your balance.',
       )

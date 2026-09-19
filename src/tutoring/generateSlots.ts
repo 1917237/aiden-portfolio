@@ -13,7 +13,7 @@ import {
   zonedCivilToIso,
 } from './timezoneUtils'
 
-/** Open slot placeholder end — shortest bookable lesson block (25 min + break). */
+/** Open slot placeholder end. shortest bookable lesson block (25 min + break). */
 const OPEN_SLOT_END_MINUTES = occupiedMinutesForDuration(25)
 
 function normalizeDateKey(value: string) {

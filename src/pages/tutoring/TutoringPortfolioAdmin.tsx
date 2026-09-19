@@ -218,7 +218,7 @@ export function TutoringPortfolioAdmin() {
           ...prev,
           about: { ...prev.about, photo: url },
         }))
-        setMessage('About photo uploaded — click Save site to publish.')
+        setMessage('About photo uploaded. click Save site to publish.')
       } else if (!selected) {
         setError('Select a project first.')
       } else {
@@ -235,8 +235,8 @@ export function TutoringPortfolioAdmin() {
         }
         setMessage(
           kind === 'model'
-            ? '3D model uploaded — click Save projects to publish.'
-            : 'Image uploaded — click Save projects to publish.',
+            ? '3D model uploaded. click Save projects to publish.'
+            : 'Image uploaded. click Save projects to publish.',
         )
       }
     } catch (err) {
@@ -382,7 +382,7 @@ export function TutoringPortfolioAdmin() {
                     })
                   }
                 >
-                  <option value="">— none —</option>
+                  <option value=""> none </option>
                   {projects.map((p) => (
                     <option key={p.slug} value={p.slug}>
                       {p.title} ({p.slug})
@@ -456,7 +456,7 @@ export function TutoringPortfolioAdmin() {
             </Field>
 
             <div className="grid gap-4 md:grid-cols-3">
-              <Field label="Skills — languages (comma-separated)">
+              <Field label="Skills. languages (comma-separated)">
                 <input
                   className={inputClass}
                   value={site.about.skills.languages.join(', ')}
@@ -477,7 +477,7 @@ export function TutoringPortfolioAdmin() {
                   }
                 />
               </Field>
-              <Field label="Skills — systems">
+              <Field label="Skills. systems">
                 <input
                   className={inputClass}
                   value={site.about.skills.robotics.join(', ')}
@@ -498,7 +498,7 @@ export function TutoringPortfolioAdmin() {
                   }
                 />
               </Field>
-              <Field label="Skills — hardware">
+              <Field label="Skills. hardware">
                 <input
                   className={inputClass}
                   value={site.about.skills.hardware.join(', ')}
@@ -754,7 +754,7 @@ export function TutoringPortfolioAdmin() {
                     ) : (
                       <p className="mt-2 text-xs text-ink-muted">
                         No cover set
-                        {selected.model ? ' — listings will show the 3D model.' : '.'}
+                        {selected.model ? '. listings will show the 3D model.' : '.'}
                       </p>
                     )}
                   </div>

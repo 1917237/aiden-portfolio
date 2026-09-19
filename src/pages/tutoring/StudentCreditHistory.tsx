@@ -172,7 +172,7 @@ export function StudentCreditHistory({ studentId, classRateCents, refreshKey = 0
           <p className="text-sm font-semibold text-ink-muted">Activity</p>
           {rows.length > HISTORY_VISIBLE_ROWS ? (
             <p className="mt-1 text-xs text-ink-muted">
-              Showing latest {rows.length} entries — scroll for more.
+              Showing latest {rows.length} entries. scroll for more.
             </p>
           ) : null}
           <div
