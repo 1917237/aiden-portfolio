@@ -63,7 +63,7 @@ Deno.serve(async (req) => {
     auth: { autoRefreshToken: false, persistSession: false },
   })
 
-  const siteUrl = Deno.env.get('SITE_URL') ?? 'http://localhost:5173'
+  const siteUrl = Deno.env.get('SITE_URL') ?? 'https://aidenluo.com'
   const redirectTo = `${siteUrl.replace(/\/$/, '')}/tutoring/login`
 
   const { data, error } = await adminClient.auth.admin.inviteUserByEmail(email, {

@@ -33,10 +33,13 @@ export function AdminInviteStudent({ onInvited }: Props) {
     setSubmitting(false)
 
     if (fnError) {
+      const raw = fnError.message || ''
       setError(
-        fnError.message.includes('invite-student') || fnError.message.includes('Failed to fetch')
-          ? 'Deploy the invite-student edge function, then try again.'
-          : fnError.message,
+        /Failed to send a request to the Edge Function|Failed to fetch|invite-student|NOT_FOUND|404/i.test(
+          raw,
+        )
+          ? 'Invite function is not deployed yet. In Terminal run: npx supabase login && npx supabase functions deploy invite-student --project-ref dntujelwmbypgtxnhyin'
+          : raw,
       )
       return
     }
