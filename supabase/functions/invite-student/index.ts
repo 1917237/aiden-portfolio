@@ -64,7 +64,8 @@ Deno.serve(async (req) => {
   })
 
   const siteUrl = Deno.env.get('SITE_URL') ?? 'https://aidenluo.com'
-  const redirectTo = `${siteUrl.replace(/\/$/, '')}/tutoring/login`
+  // First-time invitees land here to set a password (same flow as recovery).
+  const redirectTo = `${siteUrl.replace(/\/$/, '')}/tutoring/reset-password`
 
   const { data, error } = await adminClient.auth.admin.inviteUserByEmail(email, {
     data: { full_name: fullName },
