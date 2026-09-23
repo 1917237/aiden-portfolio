@@ -52,20 +52,11 @@ export function Home() {
             {siteContent.tagline}
           </motion.p>
 
-          <motion.p
-            className="mx-auto mt-4 max-w-md text-base leading-relaxed text-ink-muted md:text-lg"
-            initial={reduceMotion ? false : { opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.45, delay: reduceMotion ? 0 : 0.52 }}
-          >
-            {siteContent.home.supporting}
-          </motion.p>
-
           <motion.div
             className="mt-8 flex flex-wrap items-center justify-center gap-3"
             initial={reduceMotion ? false : { opacity: 0 }}
             animate={{ opacity: 1 }}
-            transition={{ duration: 0.4, delay: reduceMotion ? 0 : 0.65 }}
+            transition={{ duration: 0.4, delay: reduceMotion ? 0 : 0.55 }}
           >
             <Link to="/projects" className="btn-primary">
               Projects
