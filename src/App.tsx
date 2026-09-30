@@ -5,6 +5,7 @@ import { About } from './pages/About'
 import { Contact } from './pages/Contact'
 import { Home } from './pages/Home'
 import { ProjectDetail } from './pages/ProjectDetail'
+import { Privacy } from './pages/Privacy'
 import { Projects } from './pages/Projects'
 import { Resume } from './pages/Resume'
 import { TutoringShell } from './pages/tutoring/TutoringShell'
@@ -148,6 +149,7 @@ export default function App() {
           <Route path="about" element={<About />} />
           <Route path="resume" element={<Resume />} />
           <Route path="contact" element={<Contact />} />
+          <Route path="privacy" element={<Privacy />} />
           <Route path="contact/message" element={<Navigate to="/contact#message" replace />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Route>

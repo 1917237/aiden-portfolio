@@ -37,7 +37,10 @@ jobs:
       - run: npm ci
       - run: npm run build
       - name: SPA fallback for GitHub Pages
-        run: cp dist/index.html dist/404.html
+        run: |
+          cp dist/index.html dist/404.html
+          mkdir -p dist/privacy
+          cp dist/index.html dist/privacy/index.html
 
       - uses: actions/upload-pages-artifact@v4
         with:
