@@ -1,0 +1,10 @@
+# Supabase CLI project config (local + deploy flags).
+
+[functions.calendar-feed]
+# Google/Apple Calendar subscribe with ?token=… and no Authorization header.
+verify_jwt = false
+
+[functions.google-calendar]
+# Google OAuth callback and database sync pings arrive without a user JWT;
+# the function checks admin sessions and the sync secret itself.
+verify_jwt = false

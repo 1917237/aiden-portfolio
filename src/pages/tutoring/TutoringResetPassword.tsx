@@ -8,6 +8,22 @@ import {
   usePasswordStrength,
 } from '../../tutoring/PasswordStrength'
 
+function readLinkErrorFromUrl() {
+  const url = new URL(window.location.href)
+  const hash = window.location.hash.replace(/^#/, '')
+  const hashParams = new URLSearchParams(hash)
+
+  const raw =
+    url.searchParams.get('error_description') ||
+    url.searchParams.get('error') ||
+    hashParams.get('error_description') ||
+    hashParams.get('error_code') ||
+    hashParams.get('error')
+
+  if (!raw) return null
+  return raw.replace(/\+/g, ' ')
+}
+
 export function TutoringResetPassword() {
   const passwordId = useId()
   const confirmId = useId()
@@ -23,48 +39,73 @@ export function TutoringResetPassword() {
 
   useEffect(() => {
     let active = true
+    let subscription: { unsubscribe: () => void } | null = null
 
-    const hash = window.location.hash.replace(/^#/, '')
-    const params = new URLSearchParams(hash)
-    const errorCode = params.get('error_code') || params.get('error')
-    const errorDescription = params.get('error_description')
-    if (errorCode) {
-      setLinkError(
-        errorDescription?.replace(/\+/g, ' ') ||
-          'This invite or reset link is invalid or has expired.',
-      )
+    async function init() {
+      const fromUrl = readLinkErrorFromUrl()
+      if (fromUrl) {
+        if (!active) return
+        setLinkError(
+          /invalid|expired|otp/i.test(fromUrl)
+            ? 'This invite link was already used or expired. Ask Aiden to send a new invite, then open the newest email once.'
+            : fromUrl,
+        )
+        setChecking(false)
+        setReady(false)
+        return
+      }
+
+      const url = new URL(window.location.href)
+      const code = url.searchParams.get('code')
+      if (code) {
+        const { error: exchangeError } = await supabase.auth.exchangeCodeForSession(code)
+        if (!active) return
+        if (exchangeError) {
+          setLinkError(
+            /expired|invalid|otp/i.test(exchangeError.message)
+              ? 'This invite link was already used or expired. Ask Aiden to send a new invite, then open the newest email once.'
+              : exchangeError.message,
+          )
+          setChecking(false)
+          setReady(false)
+          return
+        }
+        window.history.replaceState({}, document.title, url.pathname)
+        setReady(true)
+        setLinkError(null)
+        setChecking(false)
+        return
+      }
+
+      const { data } = supabase.auth.onAuthStateChange((event, session) => {
+        if (!active) return
+        if (
+          event === 'PASSWORD_RECOVERY' ||
+          event === 'SIGNED_IN' ||
+          event === 'USER_UPDATED' ||
+          session
+        ) {
+          setReady(true)
+          setChecking(false)
+          setLinkError(null)
+        }
+      })
+      subscription = data.subscription
+
+      const sessionResult = await supabase.auth.getSession()
+      if (!active) return
+      if (sessionResult.data.session) {
+        setReady(true)
+        setLinkError(null)
+      }
       setChecking(false)
-      setReady(false)
     }
 
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((event, session) => {
-      if (!active) return
-      if (
-        event === 'PASSWORD_RECOVERY' ||
-        event === 'SIGNED_IN' ||
-        event === 'USER_UPDATED' ||
-        session
-      ) {
-        setReady(true)
-        setChecking(false)
-        setLinkError(null)
-      }
-    })
-
-    void supabase.auth.getSession().then(({ data }) => {
-      if (!active) return
-      if (data.session) {
-        setReady(true)
-        setLinkError(null)
-      }
-      setChecking(false)
-    })
+    void init()
 
     return () => {
       active = false
-      subscription.unsubscribe()
+      subscription?.unsubscribe()
     }
   }, [])
 
@@ -116,7 +157,7 @@ export function TutoringResetPassword() {
         <div className="tutoring-panel tutoring-enter tutoring-enter-delay-1 mt-8 space-y-4 p-6">
           <p className="text-sm text-red-700">
             {linkError ||
-              'This invite or reset link is invalid or has expired. Ask your tutor to send a new invite.'}
+              'This invite link is missing or expired. Ask Aiden to send a new invite, then open the newest email once.'}
           </p>
           <Link to="/tutoring/login" className="tutoring-btn inline-flex">
             Back to sign in

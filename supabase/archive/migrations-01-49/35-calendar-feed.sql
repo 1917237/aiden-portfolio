@@ -127,5 +127,6 @@ end;
 $$;
 
 revoke all on function public.get_calendar_feed_events(uuid) from public, anon, authenticated;
+grant execute on function public.get_calendar_feed_events(uuid) to service_role;
 
 notify pgrst, 'reload schema';

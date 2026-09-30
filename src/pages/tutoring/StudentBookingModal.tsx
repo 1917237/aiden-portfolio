@@ -87,7 +87,8 @@ export function StudentBookingModal({
   const [durationError, setDurationError] = useState<string | null>(null)
   const [unavailableWeeks, setUnavailableWeeks] = useState<WeeklyWeekStatus[]>([])
   const [availableSlots, setAvailableSlots] = useState<AvailabilitySlot[]>([])
-  const [availableLessonCount, setAvailableLessonCount] = useState(WEEKLY_LESSON_COUNT)
+  const [availableLessonCount, setAvailableLessonCount] = useState(0)
+  const [weeklyWeekLabels, setWeeklyWeekLabels] = useState<string[]>([])
   const [bookedLessonCount, setBookedLessonCount] = useState(1)
   const [shake, setShake] = useState(false)
   const [shakePolicy, setShakePolicy] = useState(false)
@@ -164,7 +165,8 @@ export function StudentBookingModal({
   const canConfirm =
     !durationError &&
     (!hasPartialWeeks || scheduleAnyway) &&
-    availableLessonCount > 0
+    availableLessonCount > 0 &&
+    availableSlots.length > 0
 
   useEffect(() => {
     if (!schedule) return
@@ -182,6 +184,7 @@ export function StudentBookingModal({
       setUnavailableWeeks([])
       setAvailableSlots(result.ok ? [slot] : [])
       setAvailableLessonCount(result.ok ? 1 : 0)
+      setWeeklyWeekLabels([])
       return
     }
 
@@ -198,6 +201,11 @@ export function StudentBookingModal({
     setUnavailableWeeks(result.unavailableWeeks)
     setAvailableSlots(result.ok ? result.slots : [])
     setAvailableLessonCount(result.ok ? result.slots.length : 0)
+    setWeeklyWeekLabels(
+      result.ok
+        ? result.weeks.filter((week) => week.available).map((week) => week.label)
+        : [],
+    )
 
     if (!result.ok) {
       setDurationError(result.reason)
@@ -298,8 +306,33 @@ export function StudentBookingModal({
 
     try {
       if (weekly) {
-        const realSlots = await materialize(availableSlots)
+        // Re-validate at submit so we never book a stale list that skips the clicked cell.
+        if (!schedule) throw new Error('Schedule is still loading. Try again in a moment.')
+        const fresh = validateWeeklyLesson(
+          slot,
+          durationMinutes,
+          schedule,
+          bookedRanges,
+          openSlots,
+          occupiedTimes,
+          timeZone,
+        )
+        if (!fresh.ok) throw new Error(fresh.reason)
+        const targets = fresh.slots
+        if (targets.length === 0) throw new Error('No available weeks to book')
+        if (new Date(targets[0].start_time).getTime() !== new Date(slot.start_time).getTime()) {
+          throw new Error(
+            'Weekly booking must start with the time you clicked. Close this panel and pick that green cell again.',
+          )
+        }
+
+        const realSlots = await materialize(targets)
         if (realSlots.length === 0) throw new Error('No available weeks to book')
+        if (new Date(realSlots[0].start_time).getTime() !== new Date(slot.start_time).getTime()) {
+          throw new Error(
+            'Weekly booking must start with the time you clicked. Close this panel and pick that green cell again.',
+          )
+        }
 
         const { data: bookedIds, error } = await supabase.rpc('student_book_weekly_slots', {
           p_slot_ids: realSlots.map((item) => item.id),
@@ -459,12 +492,24 @@ export function StudentBookingModal({
                 <span>
                   <span className="block text-sm font-semibold">Schedule weekly</span>
                   <span className="mt-0.5 block text-xs text-ink-muted">
-                    Keeps about {WEEKLY_LESSON_COUNT} upcoming weeks at this time. As weeks pass,
-                    new ones are added automatically; unavailable weeks are skipped and you get a
-                    notification.
+                    Starts with the time you clicked, then keeps about {WEEKLY_LESSON_COUNT}{' '}
+                    upcoming weeks at this time. As weeks pass, new ones are added automatically;
+                    unavailable weeks are skipped and you get a notification.
                   </span>
                 </span>
               </label>
+
+              {weekly && weeklyWeekLabels.length > 0 && !durationError ? (
+                <div className="border border-line bg-bg-elevated/40 px-4 py-3 text-sm">
+                  <p className="font-semibold">Lessons that will be booked</p>
+                  <p className="mt-1 text-ink-muted">
+                    First: <span className="font-medium text-ink">{weeklyWeekLabels[0]}</span>
+                    {weeklyWeekLabels.length > 1
+                      ? ` · then ${weeklyWeekLabels.slice(1).join(', ')}`
+                      : null}
+                  </p>
+                </div>
+              ) : null}
 
               {hasPartialWeeks ? (
                 <div className="border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-950">

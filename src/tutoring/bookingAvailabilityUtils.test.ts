@@ -59,4 +59,15 @@ describe('addWeeksToIso', () => {
     const iso = '2026-09-01T20:00:00.000Z'
     expect(addWeeksToIso(iso, 0, 'America/Los_Angeles')).toBe(iso)
   })
+
+  it('week 0 is the selected instant; week 1 is seven days later', () => {
+    const selected = '2026-09-21T01:00:00.000Z' // Mon Sep 21 6pm PDT
+    expect(addWeeksToIso(selected, 0, 'America/Los_Angeles')).toBe(
+      new Date(selected).toISOString(),
+    )
+    const next = addWeeksToIso(selected, 1, 'America/Los_Angeles')
+    expect(new Date(next).getTime() - new Date(selected).getTime()).toBe(
+      7 * 24 * 60 * 60 * 1000,
+    )
+  })
 })

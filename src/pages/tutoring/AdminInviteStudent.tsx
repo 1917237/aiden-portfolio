@@ -73,8 +73,8 @@ export function AdminInviteStudent({ onInvited }: Props) {
     const resent = Boolean(data && typeof data === 'object' && 'resent' in data && data.resent)
     setMessage(
       resent
-        ? `Account already existed. sent a new password setup email to ${trimmedEmail}.`
-        : `Invite sent to ${trimmedEmail}. They can set a password from the email link.`,
+        ? `Account already existed. Sent a new password setup email to ${trimmedEmail}. Tell them to open the newest email only once (old links stop working).`
+        : `Invite sent to ${trimmedEmail}. Tell them to open the newest email once (don't forward or preview the link first).`,
     )
     setEmail('')
     setFullName('')

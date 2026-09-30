@@ -343,12 +343,15 @@ export function analyzeWeeklyLesson(
     [...occupiedTimes].map((iso) => timeKey(iso)).filter((value) => !Number.isNaN(value)),
   )
   const weeks: WeeklyWeekStatus[] = []
-  const zone = timeZone ?? TUTOR_SCHEDULE_TIMEZONE
+  // Labels follow the student display zone; week math matches the tutor schedule
+  // (same as add_weeks_tutor_wall on the server) so the clicked cell is always week 0.
+  const labelZone = timeZone ?? TUTOR_SCHEDULE_TIMEZONE
+  const weekZone = TUTOR_SCHEDULE_TIMEZONE
 
   for (let week = 0; week < WEEKLY_LESSON_COUNT; week += 1) {
-    const startIso = addWeeksToIso(baseSlot.start_time, week, zone)
+    const startIso = addWeeksToIso(baseSlot.start_time, week, weekZone)
     const startMs = timeKey(startIso)
-    const label = formatWeekLabel(startIso, zone)
+    const label = formatWeekLabel(startIso, labelZone)
 
     if (occupiedKeys.has(startMs)) {
       weeks.push({
@@ -378,7 +381,7 @@ export function analyzeWeeklyLesson(
       durationMinutes,
       schedule,
       bookedRanges,
-      zone,
+      labelZone,
       openSlots,
     )
     if (!durationCheck.ok) {
@@ -477,7 +480,25 @@ export function validateWeeklyLesson(
   if (!firstWeek?.available) {
     return {
       ok: false,
-      reason: firstWeek?.reason ?? 'This week is not available.',
+      reason:
+        firstWeek?.reason === 'Already booked'
+          ? 'Your selected time this week is already taken. Pick another green cell.'
+          : firstWeek?.reason === 'Not open'
+            ? 'Your selected time this week is not open. Pick another green cell.'
+            : firstWeek?.reason ??
+              'Your selected time this week is not available. Weekly booking always starts with the cell you clicked.',
+      weeks: analysis.weeks,
+      unavailableWeeks: analysis.unavailableWeeks,
+    }
+  }
+
+  // Selected cell must be the first lesson — never start on a later week.
+  const slots = analysis.availableSlots
+  if (!slots[0] || timeKey(slots[0].start_time) !== timeKey(baseSlot.start_time)) {
+    return {
+      ok: false,
+      reason:
+        'Weekly booking could not include the time you clicked. Close this panel and pick the green cell again.',
       weeks: analysis.weeks,
       unavailableWeeks: analysis.unavailableWeeks,
     }
@@ -485,7 +506,7 @@ export function validateWeeklyLesson(
 
   return {
     ok: true,
-    slots: analysis.availableSlots,
+    slots,
     weeks: analysis.weeks,
     unavailableWeeks: analysis.unavailableWeeks,
     partial: analysis.unavailableWeeks.length > 0,

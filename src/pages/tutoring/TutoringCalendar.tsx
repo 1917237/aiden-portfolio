@@ -24,6 +24,7 @@ import { useTutoringSession } from '../../tutoring/useTutoringSession'
 import { AdminNav } from './AdminNav'
 import { CalendarSyncMenu } from './CalendarSyncMenu'
 import { CollapsibleSection } from './CollapsibleSection'
+import { GoogleCalendarConnect } from './GoogleCalendarConnect'
 import { ScheduleModal } from './ScheduleModal'
 import { TimesInTimezoneLabel } from './TimesInTimezoneLabel'
 import type { SlotClickPayload } from './WeekCalendarGrid'
@@ -309,6 +310,10 @@ function TutoringCalendarPage() {
         <div className="flex flex-col items-end gap-1">
           <TimesInTimezoneLabel timeZone={timeZone} />
         </div>
+      </div>
+
+      <div className="mt-4">
+        <GoogleCalendarConnect />
       </div>
 
       <div className="mt-4">
