@@ -154,3 +154,26 @@ export async function rescheduleBookingToTime(
   await rescheduleViaSlotUpdate(bookingId, booking.slot_id, startIso, endIso)
   await regenerateBookableSlots()
 }
+
+/** Moves this lesson and every later lesson in its weekly series; all-or-nothing. */
+export async function rescheduleSeriesFrom(
+  bookingId: string,
+  startIso: string,
+  durationMinutes: number,
+) {
+  const { data, error } = await supabase.rpc('admin_reschedule_series_from', {
+    p_booking_id: bookingId,
+    p_start_time: startIso,
+    p_duration_minutes: durationMinutes,
+  })
+  if (error) {
+    if (isMissingRpc(error.message)) {
+      throw new Error(
+        'Run supabase/migrations/57-reschedule-weekly-series.sql in the Supabase SQL Editor, then try again.',
+      )
+    }
+    throw error
+  }
+  await regenerateBookableSlots()
+  return Number(data ?? 0)
+}

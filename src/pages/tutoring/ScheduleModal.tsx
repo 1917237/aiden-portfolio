@@ -1,6 +1,12 @@
 import { type ReactNode, useEffect, useState } from 'react'
 import { supabase } from '../../lib/supabase'
-import { cancelBooking, removeBlockoutsByIds, removeDateAvailabilitySlots, rescheduleBookingToTime } from '../../tutoring/bookingActions'
+import {
+  cancelBooking,
+  removeBlockoutsByIds,
+  removeDateAvailabilitySlots,
+  rescheduleBookingToTime,
+  rescheduleSeriesFrom,
+} from '../../tutoring/bookingActions'
 import type { CalendarBooking } from '../../tutoring/calendarDayEvents'
 import { TUTOR_SCHEDULE_TIMEZONE } from '../../tutoring/config'
 import {
@@ -97,6 +103,7 @@ export function ScheduleModal({
   const [cancelDialogOpen, setCancelDialogOpen] = useState(false)
   const [meetingUrlDraft, setMeetingUrlDraft] = useState(booking?.meeting_url ?? '')
   const [applySeriesLink, setApplySeriesLink] = useState(Boolean(booking?.series_id))
+  const [moveWholeSeries, setMoveWholeSeries] = useState(false)
   const [joinSaveSuccess, setJoinSaveSuccess] = useState(false)
 
   const [studentId, setStudentId] = useState(booking?.student_id ?? '')
@@ -149,6 +156,7 @@ export function ScheduleModal({
       setDurationMinutes(resolveBookingDuration(booking.duration_minutes))
       setMeetingUrlDraft(booking.meeting_url ?? '')
       setApplySeriesLink(Boolean(booking.series_id))
+      setMoveWholeSeries(false)
       setJoinSaveSuccess(false)
       setTab('lesson')
     }
@@ -242,7 +250,10 @@ export function ScheduleModal({
     setSuccessMessage(null)
 
     try {
-      if (booking) {
+      if (booking?.series_id && moveWholeSeries) {
+        const moved = await rescheduleSeriesFrom(booking.id, startIso, durationMinutes)
+        finishSuccess(`Weekly series moved (${moved} upcoming lessons).`)
+      } else if (booking) {
         await rescheduleBookingToTime(
           booking.id,
           tutor.dateKey,
@@ -605,6 +616,39 @@ export function ScheduleModal({
                   />
                 </div>
               </div>
+
+              {booking?.series_id ? (
+                <fieldset>
+                  <legend className="text-sm font-semibold">Weekly series</legend>
+                  <div className="mt-2 grid gap-2 sm:grid-cols-2">
+                    {(
+                      [
+                        [false, 'Only this lesson'],
+                        [true, 'This and all later weeks'],
+                      ] as const
+                    ).map(([value, label]) => (
+                      <button
+                        key={label}
+                        type="button"
+                        onClick={() => setMoveWholeSeries(value)}
+                        className={`border px-3 py-2.5 text-sm font-semibold transition-colors ${
+                          moveWholeSeries === value
+                            ? 'border-sage-deep bg-sage/15 text-ink'
+                            : 'border-line hover:bg-bg-elevated'
+                        }`}
+                      >
+                        {label}
+                      </button>
+                    ))}
+                  </div>
+                  {moveWholeSeries ? (
+                    <p className="mt-2 text-xs text-ink-muted">
+                      Every later lesson moves to the same weekday and time, and new weeks keep
+                      booking at the new time.
+                    </p>
+                  ) : null}
+                </fieldset>
+              ) : null}
 
               <div className="flex flex-wrap gap-2 pt-2">
                 <button
