@@ -372,9 +372,7 @@ export function AdminTools({ onUpdated }: Props) {
       {hasLoaded ? (
         <>
           <CollapsibleSection
-            title="Invite student"
-            description="Sends a signup email. Their account is created as a student automatically."
-            defaultOpen={false}
+            title="Invite student"            defaultOpen={false}
           >
             <AdminInviteStudent onInvited={() => refreshAll()} />
           </CollapsibleSection>
@@ -403,17 +401,13 @@ export function AdminTools({ onUpdated }: Props) {
           />
 
           <CollapsibleSection
-            title="Join links"
-            description="One-off class links and one link per weekly series."
-            defaultOpen={false}
+            title="Join links"            defaultOpen={false}
           >
             <AdminMeetingLinksPanel refreshKey={dataRefreshKey} />
           </CollapsibleSection>
 
           <CollapsibleSection
-            title="Weekly series"
-            description="Active rolling or fixed weekly bookings by student."
-            defaultOpen={false}
+            title="Weekly series"            defaultOpen={false}
           >
             <AdminWeeklySeriesPanel refreshKey={dataRefreshKey} />
           </CollapsibleSection>
@@ -423,9 +417,6 @@ export function AdminTools({ onUpdated }: Props) {
               <h2 className="font-display text-2xl font-semibold tracking-tight">
                 Confirm credit payments
               </h2>
-              <p className="mt-2 text-sm text-ink-muted">
-                Students submitted these payments. Approve to add credits to their account.
-              </p>
               <ul className="mt-4 space-y-2">
                 {creditRequests.map((request) => {
                   const approveState = creditActionStates[request.id] ?? 'idle'
@@ -474,9 +465,6 @@ export function AdminTools({ onUpdated }: Props) {
 
           <section>
             <h2 className="font-display text-2xl font-semibold tracking-tight">Adjust credits</h2>
-            <p className="mt-2 text-sm text-ink-muted">
-              Add Zelle payments or remove credits manually (refunds, corrections).
-            </p>
             <form onSubmit={handleAdjustCredits} className="mt-4 space-y-3">
               <label className="block">
                 <span className="text-sm font-semibold">Student</span>

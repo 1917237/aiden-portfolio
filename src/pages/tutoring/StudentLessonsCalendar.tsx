@@ -180,9 +180,6 @@ export function StudentLessonsCalendar({ lessons, timeZone, onSelectLesson }: Pr
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
           <h3 className="font-display text-2xl font-semibold tracking-tight">Your classes</h3>
-          <p className="mt-1 text-sm text-ink-muted">
-            Upcoming and past lessons in your selected timezone.
-          </p>
         </div>
 
         <div className="flex border border-line">

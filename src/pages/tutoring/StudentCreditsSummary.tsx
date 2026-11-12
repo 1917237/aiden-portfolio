@@ -23,11 +23,7 @@ export function StudentCreditsSummary({ balanceCents, classRateCents }: Props) {
       </p>
       {owes ? (
         <p className="mt-2 text-sm text-red-800">{STUDENT_NEGATIVE_BALANCE_HINT}</p>
-      ) : (
-        <p className="mt-1 text-sm text-ink-muted">
-          1 credit = one 50-minute class at your rate.
-        </p>
-      )}
+      ) : null}
 
       <details className="mt-3 text-sm">
         <summary className="cursor-pointer font-medium text-ink-muted hover:text-ink">

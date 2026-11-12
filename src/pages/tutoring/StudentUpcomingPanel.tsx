@@ -397,8 +397,7 @@ export function StudentUpcomingPanel({
               <div className="space-y-4">
                 {upcoming.length === 0 ? (
                   <p className="text-sm text-ink-muted">
-                    No upcoming classes in this series yet (rolling will add them when you open the
-                    app).
+                    No upcoming classes in this series yet.
                   </p>
                 ) : (
                   <ul className="divide-y divide-line border border-line bg-white">
@@ -438,13 +437,6 @@ export function StudentUpcomingPanel({
 
                 <div className="space-y-3 border-t border-line pt-4">
                   <p className="text-sm font-semibold">Stop weekly series</p>
-                  <p className="text-xs text-ink-muted">
-                    Stopping notifies your tutor. Stop now cancels every upcoming class in this
-                    series. Stop on a date keeps classes through that calendar day in your
-                    timezone ({timeZoneLabel}), matching the times shown on this page. Cancelled
-                    classes follow the same {LATE_CANCEL_HOURS}-hour rule: early cancels return
-                    credits; inside {LATE_CANCEL_HOURS} hours they do not.
-                  </p>
 
                   {hasLateCancel ? (
                     <div

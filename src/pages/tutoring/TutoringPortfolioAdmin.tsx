@@ -294,10 +294,6 @@ export function TutoringPortfolioAdmin() {
           <div>
             <p className="text-sm text-ink-muted">Tutoring admin</p>
             <h1 className="mt-1 font-display text-3xl font-bold tracking-tight">Portfolio</h1>
-            <p className="mt-2 max-w-xl text-sm text-ink-muted">
-              Edit site copy, projects, images, YouTube videos, and write-up sections. Saves to
-              Supabase (run <code>50-portfolio-cms.sql</code> once if you have not).
-            </p>
           </div>
           <AdminNav current="portfolio" />
         </div>
@@ -713,10 +709,6 @@ export function TutoringPortfolioAdmin() {
                         }
                       />
                     </Field>
-                    <p className="mt-1 text-xs text-ink-muted">
-                      Used on project cards. Not shown at the top of the project page. If
-                      empty, the 3D model is used as the cover when available.
-                    </p>
                     {selected.coverImage ? (
                       <div className="mt-2 space-y-2">
                         <img

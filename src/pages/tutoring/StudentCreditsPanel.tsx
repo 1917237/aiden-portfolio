@@ -106,9 +106,6 @@ export function StudentCreditsPanel({
         ) : (
           <form onSubmit={handleSubmit} className="space-y-3">
             <p className="text-sm font-semibold">Request credits</p>
-            <p className="text-xs text-ink-muted">
-              How many credits are you paying for? Your tutor will confirm before they are added.
-            </p>
             <label className="block">
               <span className="text-sm font-semibold">Credits</span>
               <input
@@ -160,9 +157,7 @@ export function StudentCreditsPanel({
 
       <div className="border-t border-line pt-4">
         <CollapsibleSection
-          title="Credit history"
-          description="Requests, payments, lesson holds, refunds, and length changes."
-          defaultOpen={false}
+          title="Credit history"          defaultOpen={false}
         >
           <StudentCreditHistory
             studentId={studentId}

@@ -182,9 +182,6 @@ function TutoringInsightsPage() {
               <p className="mt-2 font-display text-4xl font-semibold md:text-5xl">
                 {!hasLoaded && dataLoading ? '…' : formatCredits(totals.incomeCents)}
               </p>
-              <p className="mt-2 text-xs text-ink-muted">
-                Total for the selected range. The chart shows cumulative income over time.
-              </p>
             </div>
 
             <div className="flex flex-wrap gap-2">

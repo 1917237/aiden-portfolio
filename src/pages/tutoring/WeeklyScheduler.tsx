@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { supabase } from '../../lib/supabase'
 import { TUTOR_SCHEDULE_TIMEZONE } from '../../tutoring/config'
 import { regenerateBookableSlots } from '../../tutoring/regenerateSlots'
-import { cellKey, parseCellKey, WEEKS_AHEAD } from '../../tutoring/scheduleConfig'
+import { cellKey, parseCellKey } from '../../tutoring/scheduleConfig'
 import { mapCivilBetweenZones, mapWeeklyCellKeys } from '../../tutoring/scheduleTimezoneMap'
 import {
   addDaysToDateKey,
@@ -145,9 +145,7 @@ export function WeeklyScheduler({ onSaved, onError, onMessage }: Props) {
 
   return (
     <CollapsibleSection
-      title="Weekly availability"
-      description={`8 AM to 12 AM · 15-min blocks · generates open slots for ${WEEKS_AHEAD} weeks. Times use the timezone in the nav bar.`}
-      fullHeight
+      title="Weekly availability"      fullHeight
     >
       {loading && !hasLoaded ? (
         <p className="text-ink-muted">Loading weekly schedule…</p>

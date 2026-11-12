@@ -73,7 +73,7 @@ export function TutoringLogin() {
         <p className="tutoring-eyebrow">{TUTORING_BRAND_NAME}</p>
         <h1 className="tutoring-title">Student login</h1>
         <p className="mt-3 text-sm text-ink-muted">
-          {TUTORING_BRAND_TAGLINE}. Sign in with the account your tutor set up for you.
+          {TUTORING_BRAND_TAGLINE}.
         </p>
       </div>
 

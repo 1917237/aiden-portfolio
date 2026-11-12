@@ -678,9 +678,6 @@ function TutoringStudentsPage() {
 
                   <div className="border border-line p-4">
                     <h3 className="font-semibold">Adjust credits</h3>
-                    <p className="mt-1 text-sm text-ink-muted">
-                      Add Zelle payments or remove credits (refunds, corrections).
-                    </p>
                     <form className="mt-4 space-y-3" onSubmit={(e) => void handleCreditAdjust(e)}>
                       <div className="flex gap-2">
                         {(['add', 'deduct'] as const).map((mode) => (

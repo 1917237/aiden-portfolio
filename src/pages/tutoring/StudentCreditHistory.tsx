@@ -128,7 +128,7 @@ export function StudentCreditHistory({ studentId, classRateCents, refreshKey = 0
   if (!hasRequests && !hasHistory) {
     return (
       <p className="text-sm text-ink-muted">
-        No credit activity yet. New bookings and payments will show up here.
+        No credit activity yet.
       </p>
     )
   }

@@ -118,11 +118,6 @@ export function TutoringNotifications() {
         <div>
           <p className="tutoring-eyebrow">{TUTORING_BRAND_NAME}</p>
           <h1 className="tutoring-title">Notifications</h1>
-          <p className="mt-2 text-sm text-ink-muted">
-            {isAdmin
-              ? 'New student bookings and other updates.'
-              : 'Class cancellations, weekly skips, and other updates.'}
-          </p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
           {isAdmin ? (

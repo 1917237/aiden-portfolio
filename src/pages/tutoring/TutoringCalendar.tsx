@@ -318,9 +318,7 @@ function TutoringCalendarPage() {
 
       <div className="mt-4">
         <CollapsibleSection
-          title="Calendar sync"
-          description="Subscribe to all student lessons in Google or Apple Calendar."
-          defaultOpen={false}
+          title="Calendar sync"          defaultOpen={false}
         >
           <CalendarSyncMenu downloadEvents={icsDownloadEvents} />
         </CollapsibleSection>

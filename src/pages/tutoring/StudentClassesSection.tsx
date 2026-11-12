@@ -86,9 +86,6 @@ export function StudentClassesSection({
           <h2 className="font-display text-2xl font-semibold tracking-tight md:text-3xl">
             My classes
           </h2>
-          <p className="mt-1 text-sm text-ink-muted">
-            Click a lesson to cancel or reschedule. Sync to your phone calendar below.
-          </p>
         </div>
         <CalendarSyncMenu downloadEvents={icsDownloadEvents} />
       </div>

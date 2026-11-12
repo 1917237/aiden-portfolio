@@ -145,7 +145,7 @@ export function TutoringResetPassword() {
         <p className="tutoring-eyebrow">{TUTORING_BRAND_NAME}</p>
         <h1 className="tutoring-title">Create your password</h1>
         <p className="mt-3 text-sm text-ink-muted">
-          {TUTORING_BRAND_TAGLINE}. Set a password to finish joining, then you can sign in anytime.
+          {TUTORING_BRAND_TAGLINE}.
         </p>
       </div>
 

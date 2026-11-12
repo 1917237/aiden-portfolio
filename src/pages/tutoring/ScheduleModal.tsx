@@ -571,8 +571,7 @@ export function ScheduleModal({
                 <p className="text-sm text-ink-muted">
                   Balance: <CreditBalance cents={selectedStudent.credit_balance_cents} />
                   {' · '}
-                  Scheduling reserves {formatCredits(scheduleCreditChargeCents)} for a{' '}
-                  {formatDurationLabel(durationMinutes)} lesson (balance may go negative).
+                  Cost: {formatCredits(scheduleCreditChargeCents)}
                 </p>
               ) : null}
 
@@ -641,12 +640,6 @@ export function ScheduleModal({
                       </button>
                     ))}
                   </div>
-                  {moveWholeSeries ? (
-                    <p className="mt-2 text-xs text-ink-muted">
-                      Every later lesson moves to the same weekday and time, and new weeks keep
-                      booking at the new time.
-                    </p>
-                  ) : null}
                 </fieldset>
               ) : null}
 
@@ -676,8 +669,7 @@ export function ScheduleModal({
           {tab === 'join' && booking ? (
             <>
               <p className="text-sm text-ink-muted">
-                Join link for <strong>{booking.student_name}</strong>. Students see this on their
-                upcoming class and lesson details.
+                Join link for <strong>{booking.student_name}</strong>
               </p>
               <label className="block">
                 <span className="text-sm font-semibold">Meeting URL</span>
@@ -758,8 +750,6 @@ export function ScheduleModal({
                   </button>
                 </div>
               ) : null}
-
-              <p className="text-sm text-ink-muted">Block time so students cannot book it.</p>
 
               <label className="flex items-center gap-2 text-sm">
                 <input
@@ -842,10 +832,6 @@ export function ScheduleModal({
 
               <div>
                 <p className="font-semibold">Add extra slots</p>
-                <p className="text-sm text-ink-muted">
-                  Opens this time for student booking, even if it overlaps with time off. Other
-                  blocked times stay blocked.
-                </p>
               </div>
 
               <Field label="Starts">

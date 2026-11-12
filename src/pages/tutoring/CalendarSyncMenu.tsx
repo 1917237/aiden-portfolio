@@ -75,10 +75,6 @@ export function CalendarSyncMenu({ downloadEvents = [] }: Props) {
           aria-label="Calendar sync"
           className="absolute right-0 top-full z-30 mt-2 w-[min(22rem,calc(100vw-2rem))] border border-line bg-white p-4 shadow-lg"
         >
-          <p className="text-sm text-ink-muted">
-            Add your upcoming lessons to Google or Apple Calendar with reminders.
-          </p>
-
           {loading ? <p className="mt-3 text-sm text-ink-muted">Preparing your link…</p> : null}
           {error ? <p className="mt-3 text-sm text-red-700">{error}</p> : null}
 

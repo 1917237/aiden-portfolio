@@ -113,11 +113,7 @@ export function GoogleCalendarConnect() {
 
   return (
     <div className="border border-line bg-white p-4">
-      <h3 className="text-sm font-semibold">Instant Google Calendar sync</h3>
-      <p className="mt-1 text-sm text-ink-muted">
-        Bookings, reschedules and cancellations show up in your Google Calendar within seconds.
-        Students are added as guests, so Google updates their calendar and emails them too.
-      </p>
+      <h3 className="text-sm font-semibold">Google Calendar sync</h3>
 
       {status?.connected ? (
         <p className="mt-3 text-sm">

@@ -489,14 +489,7 @@ export function StudentBookingModal({
                   onChange={(event) => setWeekly(event.target.checked)}
                   className="mt-0.5"
                 />
-                <span>
-                  <span className="block text-sm font-semibold">Schedule weekly</span>
-                  <span className="mt-0.5 block text-xs text-ink-muted">
-                    Starts with the time you clicked, then keeps about {WEEKLY_LESSON_COUNT}{' '}
-                    upcoming weeks at this time. As weeks pass, new ones are added automatically;
-                    unavailable weeks are skipped and you get a notification.
-                  </span>
-                </span>
+                <span className="block text-sm font-semibold">Schedule weekly</span>
               </label>
 
               {weekly && weeklyWeekLabels.length > 0 && !durationError ? (

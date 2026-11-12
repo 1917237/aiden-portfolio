@@ -458,7 +458,6 @@ export function StudentLessonModal({
                   {hasLoaded && !loading && weekSlots.length === 0 ? (
                     <p className="text-sm text-ink-muted">
                       No open times this week for a {formatDurationLabel(durationMinutes)} lesson.
-                      Try another week or a shorter length.
                     </p>
                   ) : null}
 
@@ -524,12 +523,7 @@ export function StudentLessonModal({
                           </>
                         )}
                       </p>
-                    ) : (
-                      <p className="mt-2 text-xs text-ink-muted">
-                        Change length only (same time) or pick a green cell for a new time.
-                        Credits adjust if the length changes.
-                      </p>
-                    )}
+                    ) : null}
                   </div>
 
                   <div className="flex flex-wrap gap-2">

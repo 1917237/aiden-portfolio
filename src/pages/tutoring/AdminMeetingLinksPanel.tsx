@@ -233,9 +233,6 @@ export function AdminMeetingLinksPanel({ refreshKey = 0 }: Props) {
 
       <div>
         <h3 className="font-semibold">Classes missing a link</h3>
-        <p className="mt-1 text-xs text-ink-muted">
-          One-off classes get their own link. Weekly series get one link for the whole series.
-        </p>
         {rows.length === 0 ? (
           <p className="mt-2 text-sm text-ink-muted">Every upcoming class has a join link.</p>
         ) : (
