@@ -11,7 +11,6 @@ import {
   saveDisplayTimezone,
   startOfWeekFromDateKey,
 } from '../../tutoring/timezoneUtils'
-import { STUDENT_BOOKING_CREDIT_HINT } from '../../tutoring/studentCreditCopy'
 import { StudentBookingModal } from './StudentBookingModal'
 import { buildSlotsByCell, buildTakenCellsByKey, StudentWhen2MeetGrid } from './StudentWhen2MeetGrid'
 import { TimezoneSelect } from './TimezoneSelect'
@@ -134,7 +133,6 @@ export function StudentBooking({
           Green cells are open, amber cells are taken by another student. Click a green cell to
           choose lesson length and confirm.
         </p>
-        <p className="mt-1 text-ink-muted">{STUDENT_BOOKING_CREDIT_HINT}</p>
       </div>
 
       {error ? <p className="mt-4 text-sm text-red-700">{error}</p> : null}
